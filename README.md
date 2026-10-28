@@ -1,6 +1,6 @@
 # BodyMap — your body, explained
 
-Live: https://bodymap-pied.vercel.app (Vercel project `bodymap`)
+**Live demo:** https://bodymap-qu9s.vercel.app
 
 Upload a prescription, blood report, X-ray, MRI, CT or ultrasound. Gemini reads it, every finding is pinned to a 3D body, and everything is explained in plain language for older patients. Records stay in the browser (localStorage). No login, no database.
 
@@ -11,10 +11,10 @@ npm install
 npm run dev
 ```
 
-## Redeploy after changes
-```bash
-npx vercel deploy --prod --yes
-```
+## Deploying
+Vercel is connected to this GitHub repo. Every push to `main` redeploys https://bodymap-qu9s.vercel.app automatically. Pushes to other branches get their own preview link.
+
+Set `GEMINI_KEYS` (and optionally `GEMINI_MODEL`) under the Vercel project's Settings > Environment Variables, then redeploy once.
 
 ## Gemini notes
 - These keys only work on the Gemini **Interactions** API (`/v1beta/interactions`), which the route uses.
