@@ -42,7 +42,7 @@ function Cell({ ch, width, delay }: { ch: string; width?: number; delay: number 
 }
 
 // Cycles English -> Hindi -> next English ..., flipping cell by cell, left to right.
-export default function FlipQuote({ quotes, hold = 4000, className = "" }: { quotes: Quote[]; hold?: number; className?: string }) {
+export default function FlipQuote({ quotes, hold = 2000, className = "" }: { quotes: Quote[]; hold?: number; className?: string }) {
   const texts = useMemo(() => quotes.flatMap((q) => [q.en, q.hi]).map((lines) => lines.map(split)), [quotes]);
   const cols = useMemo(() => Array.from({ length: Math.max(...texts.map((t) => t.length)) }, (_, l) => Math.max(...texts.map((t) => t[l]?.length ?? 0))), [texts]);
   const [i, setI] = useState(0);
