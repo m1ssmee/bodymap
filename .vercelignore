@@ -1,0 +1,9 @@
+node_modules
+.next
+.env*.local
+healthyapi.txt
+demo-docs/html
+screenshots
+Plan1.md
+PLAN.md
+scripts

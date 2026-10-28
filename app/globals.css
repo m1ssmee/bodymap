@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), var(--font-deva);
+  --font-mono: var(--font-geist-mono), var(--font-deva);
+  --color-ink: #0b0b0f;
+  --color-muted: #5d616c;
+  --color-line: rgb(11 11 15 / 0.09);
+}
+
+html { font-size: 18px; background: #dfe6f3; }
+body { font-feature-settings: "ss01", "cv11"; }
+.num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+@utility label {
+  font-family: var(--font-geist-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+@utility panel {
+  background: rgb(255 255 255 / 0.86);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+}
+@utility field {
+  width: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  background: white;
+  font-size: 0.95rem;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+@keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+
+/* ---- split-flap quote: each change is a hinge flip with strong perspective, never a fade ---- */
+.flip-quote { display: block; font-family: var(--font-geist-sans), var(--font-deva), sans-serif; font-weight: 600; line-height: 1.22; font-size: min(10.5vw, 7.5rem); }
+@media (min-width: 640px) { .flip-quote { font-size: min(7vw, 7.5rem); } }
+.flip-line { display: block; white-space: nowrap; height: 1.22em; }
+.flip-cell { position: relative; display: inline-block; height: 1.22em; vertical-align: top; perspective: 1.6em; transition: width .45s cubic-bezier(.2,.7,.2,1); }
+.flip-size { visibility: hidden; white-space: pre; }
+.flip-g { position: absolute; inset: 0 auto auto 0; white-space: pre; transform-origin: 50% 46%; backface-visibility: hidden; }
+.flip-tick { animation: flip-tick 85ms linear both; }
+.flip-land { animation: flip-land .38s cubic-bezier(.2,.9,.3,1.25) both; }
+@keyframes flip-tick { from { transform: rotateX(-88deg); } to { transform: rotateX(0); } }
+@keyframes flip-land { 0% { transform: rotateX(-88deg); } 65% { transform: rotateX(14deg); } 100% { transform: rotateX(0); } }
+@media (prefers-reduced-motion: reduce) { .flip-tick, .flip-land { animation: none; } .flip-cell { transition: none; } }
+
+/* ---- landing <-> overview: the arriving page rises in from below / drops in from above ---- */
+html[data-rise] .rise-in { animation: rise .75s cubic-bezier(.2,.8,.2,1) both; }
+html[data-rise] .rise-fade { animation: rise-fade .5s ease-out .25s both; }
+html[data-drop] .drop-in { animation: drop .75s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes drop { from { transform: translateY(-45vh); opacity: 0; } 35% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes rise { from { transform: translateY(45vh); opacity: 0; } 35% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes rise-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { html[data-rise] .rise-in, html[data-rise] .rise-fade, html[data-drop] .drop-in { animation: rise-fade .3s both; } }
+html:has(.rise-in) { overscroll-behavior-y: none; } /* the drag-down at the top is ours, not pull-to-refresh */
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* ---- Hindi typography: Devanagari hangs from a continuous top line, so no tracking, more leading,
+   and the tiny mono caps labels become readable sans text ---- */
+html[lang="hi"] body *:not(.latin) { letter-spacing: normal; }
+html[lang="hi"] :is(.font-mono, .label) { font-family: var(--font-geist-sans), var(--font-deva), sans-serif; text-transform: none; }
+html[lang="hi"] :is(.label, .text-\[10px\], .text-\[11px\], .text-\[13px\]) { font-size: 14px; font-weight: 500; }
+html[lang="hi"] :is(h1, h2, h3) { line-height: 1.32; }
+html[lang="hi"] :is(p, li) { line-height: 1.7; }
