@@ -47,7 +47,7 @@ export default function BodyPage() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="relative h-[60vh] min-h-[440px] min-w-0 lg:h-[calc(100vh-13rem)]">
-          <Body markers={markers} selected={region} onSelect={setRegion} />
+          <Body markers={markers} selected={region} onSelect={setRegion} caption={region ? `${t.region[region]} · ${t.body.findings(hits.length)}` : undefined} />
           <div className="pointer-events-none absolute left-0 top-0">
             <div className="label">{record ? `${t.kind[record.kind]} · ${t.date(record.date)}` : t.body.allRecords}</div>
             <div className="mt-1 text-xl font-medium tracking-tight">{record ? record.title : patient.name}</div>

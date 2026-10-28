@@ -1,6 +1,6 @@
 # Plan2 — round two of changes
 
-## 1. The body figure — REVISED for the light page (awaiting approval)
+## 1. The body figure — REVISED for the light page — built 28 Oct 2026
 
 Reference: the anatomical wireframe man (triangulated skin, bright outline, faint inside, organs and arteries in red).
 Adapted to the site's light flowing background, where it has to read as ink on paper, not light on black.
@@ -59,6 +59,18 @@ Adapted to the site's light flowing background, where it has to read as ink on p
 
 ### Not in this round
 - Sex/age-specific bodies, animation, real organ meshes, tapping individual arteries.
+
+### Status — built 28 Oct 2026
+- `scripts/build-body.mjs` poses the MakeHuman mesh with its own rig: forearms straightened, arms hanging 80° below
+  horizontal, legs brought in 4.5°. Run `node scripts/build-body.mjs` to rebuild; `--preview` writes a 2D check.
+- Output is `public/body.json` (469 KB, 135 KB gzipped) instead of a quantised body.bin: simpler, the server gzips it.
+- Skin: 7,455 wireframe edges from a ~5,160-triangle simplification, 6,000 surface points, 80 accents.
+- Face cleanup: no outlines around the eyes, mouth cavity removed, lower face never outlines (no ring when it turns).
+- Organs, joints, bones and arteries as planned. Normal findings draw at 60%, flagged ones get the halo; arteries 22%.
+- Taps hit one invisible sphere per organ, smallest first (heart beats lungs). The skin ignores the pointer, so a tap
+  on empty space clears the selection. The figure holds the front while an organ is selected.
+- Caption sits on the organ's outer side; on narrow phones it takes the roomier side and shortens its leader line.
+  Checked at 375 px and 1440 px, English and Hindi. tsc, lint and production build pass.
 
 ## 2. Landing page — APPROVED (reference: white page, one bold line, EXPLORE bottom-left, SWIPE UP bottom-centre)
 

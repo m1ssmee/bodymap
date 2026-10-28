@@ -67,3 +67,14 @@ html[lang="hi"] :is(.font-mono, .label) { font-family: var(--font-geist-sans), v
 html[lang="hi"] :is(.label, .text-\[10px\], .text-\[11px\], .text-\[13px\]) { font-size: 14px; font-weight: 500; }
 html[lang="hi"] :is(h1, h2, h3) { line-height: 1.32; }
 html[lang="hi"] :is(p, li) { line-height: 1.7; }
+
+/* ---- body page: soft light behind the figure, and the selected-organ label ---- */
+.body-stage { background: radial-gradient(ellipse 34% 48% at 50% 50%, rgb(255 255 255 / 0.55), transparent 72%); }
+.organ-caption { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.organ-caption > div { display: flex; align-items: center; transform: translateY(-50%); }
+.organ-caption[data-side="left"] > div { flex-direction: row-reverse; transform: translate(-100%, -50%); }
+.organ-dot { width: 8px; height: 8px; margin: 0 -4px; border-radius: 9999px; background: currentColor; box-shadow: 0 0 0 3px rgb(255 255 255 / 0.8); }
+.organ-lead { width: 56px; height: 1px; background: currentColor; opacity: .7; }
+.organ-chip { white-space: nowrap; border: 1px solid var(--color-line); border-radius: 8px; background: rgb(255 255 255 / 0.92);
+  padding: 4px 10px; font-family: var(--font-geist-mono), var(--font-deva); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--color-ink); }
+html[lang="hi"] .organ-chip { font-family: var(--font-geist-sans), var(--font-deva); font-size: 14px; letter-spacing: normal; text-transform: none; }

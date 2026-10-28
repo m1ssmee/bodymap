@@ -59,6 +59,7 @@ const EN = {
     allRecords: "All records", overview: "Overview", back: "← Overview", backAll: "← All records", remove: "Remove",
     confirmRemove: "Remove this record?", hint: "Drag to turn · Tap a node", total: (n: number) => `${n} total`,
     noFindings: "No findings yet. Upload a report to see it on your body.", noConditions: "No conditions noted",
+    findings: (n: number) => (n === 1 ? "1 finding" : `${n} findings`),
   },
   record: {
     findings: "Findings", results: "Results", medicines: "Medicines", advice: "Doctor's advice", ask: "Ask at your next visit",
@@ -152,6 +153,7 @@ const HI: typeof EN = {
     allRecords: "सारी रिपोर्ट", overview: "सारांश", back: "← सारांश", backAll: "← सारी रिपोर्ट", remove: "हटाएँ",
     confirmRemove: "यह रिपोर्ट हटा दें?", hint: "घुमाने के लिए खींचें · किसी बिंदु को छुएँ", total: (n: number) => `कुल ${n}`,
     noFindings: "अभी कोई जानकारी नहीं। रिपोर्ट जोड़ें, वह आपके शरीर पर दिखेगी।", noConditions: "कोई बीमारी दर्ज नहीं",
+    findings: (n: number) => (n === 1 ? "1 बात" : `${n} बातें`),
   },
   record: {
     findings: "क्या मिला", results: "जाँच के नतीजे", medicines: "दवाइयाँ", advice: "डॉक्टर की सलाह", ask: "अगली बार डॉक्टर से पूछें",
