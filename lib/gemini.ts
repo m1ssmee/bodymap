@@ -6,7 +6,7 @@ let cursor = 0; // ponytail: per-instance round robin, fine for a demo; shared c
 
 export type GeminiResult = { ok: true; data: Record<string, unknown> } | { ok: false; status: number; error: string };
 
-export async function askGemini(input: unknown[], schema: object, budgetMs = 52_000): Promise<GeminiResult> {
+export async function askGemini(input: unknown[], schema: object, budgetMs = 52_000, attemptMs = 30_000): Promise<GeminiResult> {
   if (!KEYS.length) return { ok: false, status: 500, error: "Server has no GEMINI_KEYS configured." };
   const deadline = Date.now() + budgetMs;
   const start = cursor++;
@@ -22,7 +22,7 @@ export async function askGemini(input: unknown[], schema: object, budgetMs = 52_
           response_format: { type: "text", mime_type: "application/json", schema },
           generation_config: { temperature: 0.2, thinking_level: "low" },
         }),
-        signal: AbortSignal.timeout(Math.min(30_000, deadline - Date.now())),
+        signal: AbortSignal.timeout(Math.min(attemptMs, deadline - Date.now())), // a hung model must leave time for the next one
       });
     } catch { lastError = `${model} timed out`; continue; }
     const json = await res.json().catch(() => null);

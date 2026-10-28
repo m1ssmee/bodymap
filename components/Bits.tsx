@@ -7,11 +7,11 @@ export const Dot = ({ s, size = 8 }: { s: Severity; size?: number }) => {
   return <span className="inline-block shrink-0 rounded-full" style={{ width: size, height: size, background: SEVERITY_COLOR[s] }} aria-label={t.sev[s]} />;
 };
 
-export const Sev = ({ s }: { s: Severity }) => {
+export const Sev = ({ s, label }: { s: Severity; label?: string }) => {
   const t = useT();
   return (
     <span className="inline-flex items-center gap-2 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.12em]" style={{ color: SEVERITY_COLOR[s] }}>
-      <Dot s={s} size={7} />{t.sev[s]}
+      <Dot s={s} size={7} />{label ?? t.sev[s]}
     </span>
   );
 };

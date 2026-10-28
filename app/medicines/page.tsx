@@ -1,5 +1,6 @@
 "use client";
 import Speak from "@/components/Speak";
+import MedMix from "@/components/MedMix";
 import { useT } from "@/lib/i18n";
 import { currentMedicines } from "@/lib/medical";
 import { useLocalRecords } from "@/lib/store";
@@ -47,6 +48,7 @@ export default function Medicines() {
           })}
         </div>
       )}
+      {meds.length > 0 && <MedMix meds={meds} />}
       {rx && rx.advice.length > 0 && (
         <section>
           <h2 className="label mb-3">{m.advice}</h2>

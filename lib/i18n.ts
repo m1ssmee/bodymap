@@ -73,6 +73,16 @@ const EN = {
     food: { before: "before food", after: "after food", any: "with or without food" }, advice: "Doctor's advice",
     spoken: (slot: string, list: string) => `${slot}. ${list || "No medicines."}`,
     spokenItem: (name: string, dose: string, food: string, purpose: string) => `${name}, ${dose}, ${food}, for ${purpose}.`,
+    mix: {
+      title: "Do your medicines mix well?",
+      level: { attention: "Ask your doctor", watch: "Be careful", normal: "Good to know" } as Record<Severity, string>,
+      none: "No known problems between your medicines.", checking: "Checking your medicines…",
+      failed: (names: string) => `Couldn't check ${names} right now. Ask your pharmacist about them.`,
+      ai: "Checked by AI · confirm with your pharmacist",
+      apart: "Your timing already keeps these apart.",
+      together: "In your plan they are taken at the same time. Ask your doctor or pharmacist how to space them.",
+      footer: "Tell your doctor about every medicine you take, including shop and ayurvedic medicines. Never stop a medicine on your own.",
+    },
   },
   trends: {
     label: "Trends", title: ["Your health", "numbers, simply."],
@@ -167,6 +177,16 @@ const HI: typeof EN = {
     food: { before: "खाने से पहले", after: "खाने के बाद", any: "खाने से पहले या बाद" }, advice: "डॉक्टर की सलाह",
     spoken: (slot: string, list: string) => `${slot}। ${list || "कोई दवा नहीं।"}`,
     spokenItem: (name: string, dose: string, food: string, purpose: string) => `${name}, ${dose}, ${food}, ${purpose} के लिए।`,
+    mix: {
+      title: "क्या आपकी दवाइयाँ साथ में ठीक हैं?",
+      level: { attention: "डॉक्टर से पूछें", watch: "सावधान रहें", normal: "जानने लायक" },
+      none: "आपकी दवाइयों के बीच कोई जानी-मानी दिक़्क़त नहीं है।", checking: "आपकी दवाइयाँ जाँची जा रही हैं…",
+      failed: (names: string) => `${names} की जाँच अभी नहीं हो पाई। फ़ार्मासिस्ट से इनके बारे में पूछें।`,
+      ai: "AI से जाँचा गया · फ़ार्मासिस्ट से पक्का करें",
+      apart: "आपकी योजना में इनके बीच पहले से फ़ासला है।",
+      together: "आपकी योजना में दोनों एक ही समय पर हैं। डॉक्टर या फ़ार्मासिस्ट से पूछें कि फ़ासला कैसे रखें।",
+      footer: "आप जो भी दवा लेते हैं, डॉक्टर को बताएँ, दुकान से ली गई और आयुर्वेदिक दवाइयाँ भी। कोई भी दवा अपने आप बंद न करें।",
+    },
   },
   trends: {
     label: "जाँच", title: ["आपकी सेहत के आँकड़े,", "आसान भाषा में।"],

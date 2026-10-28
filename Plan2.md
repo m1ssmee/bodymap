@@ -223,3 +223,53 @@ target script with hinge rotations, no fades.
 - Figure redrawn for a light page: ink-blue points/lines with normal blending, darkest at the silhouette, organs in the
   site's severity colours, nodes as solid coloured dots. NOTE for section 1 (on hold): the scene is now light, not navy.
 - The figure no longer traps scrolling: no wheel zoom, vertical swipes scroll the page, it turns left/right only.
+
+## 6. Medicines: "Do your medicines mix well?" — built 28 Oct 2026
+
+### What it shows
+- A new section on the Medicines page, under today's plan and above Doctor's advice.
+- One card per caution, most serious first:
+  - the names involved, e.g. "Thyronorm + Orofer XT" or "Glycomet + alcohol"
+  - a level word in the site's colours: Ask your doctor (red), Be careful (amber), Good to know (green)
+  - what happens, in one short sentence, and what to do, in one short sentence
+  - a read-aloud button, like the medicine slots
+- Three kinds of caution: medicine with medicine, medicine with food or drink (tea, milk, alcohol, low-sodium salt),
+  and medicine with common shop medicines (painkillers like Combiflam or Voveran, antacids, calcium).
+- Timing: when two medicines that must be kept apart sit in the same slot, the card says so. When the plan already
+  keeps them apart, it says "your timing already keeps these apart".
+- Nothing found: "No known problems between your medicines."
+- Footer on every list: "Tell your doctor about every medicine you take, including shop and ayurvedic medicines.
+  Never stop a medicine on your own."
+- Full Hindi, like the rest of the site.
+
+### Where the cautions come from
+- A reviewed list in `lib/interactions.ts`, matched by generic name: about 20 well-known cautions for medicines
+  common in older Indians (diabetes, BP, cholesterol, thyroid, blood thinners, painkillers, acidity, iron, calcium,
+  vitamins), written in English and Hindi. Instant, works offline, same answer every time.
+- Medicines not on the list (from new uploads): one Gemini call returns cautions in English and Hindi. It is told to
+  list only well-established ones and never to advise stopping or changing a dose. These cards carry a
+  "Checked by AI · confirm with your pharmacist" tag. The result is saved in the browser, so it runs once per
+  medicine list. While it runs (~10 s), one small "Checking your medicines…" line shows. No loading screen.
+- No outside drug database: the free NIH interaction API was shut down in 2024, and DrugBank needs a licence.
+
+### What the demo patients will show
+- Ramesh: painkillers for his knee (ibuprofen, diclofenac) with Telma can raise BP and strain the kidneys, so ask
+  before taking any painkiller. Alcohol with Glycomet can drop sugar and adds to his liver strain. Glycomet over years
+  lowers vitamin B12, so ask for a yearly B12 test. Low-sodium salt with Telma can raise potassium.
+- Lakshmi: iron in Orofer XT blocks Thyronorm, so keep them 4 hours apart (her plan already does). Tea, coffee or
+  milk too close to Thyronorm weakens it. Tea or milk with Orofer XT lowers the iron taken in, so take it with water.
+
+### Cost
+- About 1.5 h: list and matching ~45 min, section and Hindi ~30 min, AI for unlisted medicines ~20 min.
+
+### Not in this round
+- Medicines typed in by hand, dose checks, allergy checks.
+
+### Status — built 28 Oct 2026
+- 20 reviewed cautions in `lib/interactions.ts`. Ramesh shows 4 (painkillers, alcohol, B12, low-sodium salt) and
+  Lakshmi 3 (iron spacing with "your timing already keeps these apart", tea with each tablet). No AI call for either.
+- AI check in `/api/interactions`: one request per new medicine list, saved in the browser. Answers took 11–50 s
+  because Gemini was slow, so the route gets 60 s and drops a hung model after 16 s to try the next one. When every
+  model is busy, the card says "Couldn't check … ask your pharmacist" and it retries on the next visit.
+- AI answers can differ between runs (tested with Ciplox: iron, dairy, thyroid and caffeine came up). Each list is
+  checked once and then stays the same.
