@@ -46,16 +46,19 @@ export default function BodyPage() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-        <div className="relative h-[60vh] min-h-[440px] min-w-0 lg:h-[calc(100vh-13rem)]">
-          <Body markers={markers} selected={region} onSelect={setRegion} caption={region ? `${t.region[region]} · ${t.body.findings(hits.length)}` : undefined} />
-          <div className="pointer-events-none absolute left-0 top-0">
+        {/* app: the bigger text would sit on the figure, so the name goes above it and the legend below it */}
+        <div className="relative h-[60vh] min-h-[440px] min-w-0 lg:h-[calc(100vh-13rem)] app:flex app:h-auto app:min-h-0 app:flex-col app:gap-3">
+          <div className="h-full app:h-[58vh] app:min-h-[360px]">
+            <Body markers={markers} selected={region} onSelect={setRegion} caption={region ? `${t.region[region]} · ${t.body.findings(hits.length)}` : undefined} />
+          </div>
+          <div className="pointer-events-none absolute left-0 top-0 app:static app:order-first">
             <div className="label">{record ? `${t.kind[record.kind]} · ${t.date(record.date)}` : t.body.allRecords}</div>
             <div className="mt-1 text-xl font-medium tracking-tight">{record ? record.title : patient.name}</div>
           </div>
-          <div className="pointer-events-none absolute bottom-0 left-0 flex flex-col gap-1.5">
+          <div className="pointer-events-none absolute bottom-0 left-0 flex flex-col gap-1.5 app:static app:flex-row app:flex-wrap app:gap-x-5">
             {(["attention", "watch", "normal"] as const).map((s) => <Sev key={s} s={s} />)}
           </div>
-          <div className="label pointer-events-none absolute bottom-0 right-0 hidden sm:block">{t.body.hint}</div>
+          <div className="label pointer-events-none absolute bottom-0 right-0 hidden sm:block app:hidden">{t.body.hint}</div>
         </div>
 
         <aside className="panel min-w-0 p-6 lg:h-[calc(100vh-13rem)] lg:overflow-y-auto">
@@ -82,7 +85,7 @@ export default function BodyPage() {
                 <button onClick={() => pick(null)} className="label min-h-11 hover:text-ink">{t.body.backAll}</button>
                 <button onClick={() => { if (confirm(t.body.confirmRemove)) { removeRecord(record.id); pick(null); } }} className="label min-h-11 hover:text-[#d4483b]">{t.body.remove}</button>
               </div>
-              <RecordView r={record} previous={previous} showPending />
+              <RecordView r={record} previous={previous} showPending share />
             </div>
           ) : (
             <div>

@@ -96,12 +96,24 @@ const EN = {
   range: { between: (a: number, b: number, u: string) => `${a} to ${b} ${u}`, below: (b: number, u: string) => `below ${b} ${u}`, above: (a: number, u: string) => `above ${a} ${u}`, none: "not printed" },
   upload: {
     label: "Upload", title: "Add a record.", intro: "Prescription, blood report, X-ray, MRI, CT or ultrasound. A photo or a PDF.",
-    photo: "Take a photo", photoSub: "Use your phone camera", file: "Choose a file", fileSub: "JPG, PNG or PDF",
+    photo: "Take a photo", photoSub: "Use your phone camera", scanSub: "Edges are found and cropped for you", file: "Choose a file", fileSub: "JPG, PNG or PDF",
     sample: "Or try a sample", samples: ["Blood report (Oct 2026)", "Handwritten prescription"],
     privacy: "Only the image is sent to be read. Your records stay on this device.",
     reading: "Reading your document", time: "20 to 40 seconds",
     check: "Check before saving", match: "Does this match your paper?", titleField: "Title", dateField: "Date",
     save: "Looks right, save", discard: "Discard", pdfTooBig: "PDF is larger than 4 MB. Try a photo of the page instead.", failed: "Something went wrong.",
+  },
+  remind: {
+    slot: (slot: string) => `${slot} medicines`, due: "Check-up due today",
+    off: "Get a reminder at 8 AM, 2 PM and 8 PM with the medicines to take, and on the morning a check-up is due.",
+    on: "Reminders are on: 8 AM, 2 PM and 8 PM, and on the morning a check-up is due.",
+    turnOn: "Turn on reminders", turnOff: "Turn off", channel: "Medicine and check-up reminders",
+    late: "Reminders are on, but your phone may send them a few minutes late. For exact times, tap below and on the next screen switch on alarms and reminders.",
+    exact: "Remind me on time",
+    blocked: "Notifications are blocked for BodyMap. Turn them on in your phone's Settings, under Apps.",
+  },
+  share: {
+    button: "Share", dialog: "Share this record", tests: "Tests outside the healthy range", meds: "Medicines", footer: "Shared from BodyMap",
   },
   upcoming: {
     title: "Upcoming", add: "+ Add appointment", what: "Doctor or purpose", when: "Date", time: "Time", place: "Place (optional)",
@@ -200,12 +212,24 @@ const HI: typeof EN = {
   range: { between: (a: number, b: number, u: string) => `${a} से ${b} ${u}`, below: (b: number, u: string) => `${b} ${u} से कम`, above: (a: number, u: string) => `${a} ${u} से ज़्यादा`, none: "छपा नहीं है" },
   upload: {
     label: "अपलोड", title: "रिपोर्ट जोड़ें।", intro: "पर्चा, खून की जाँच, एक्स-रे, एमआरआई, सीटी या अल्ट्रासाउंड। फ़ोटो या PDF।",
-    photo: "फ़ोटो लें", photoSub: "फ़ोन के कैमरे से", file: "फ़ाइल चुनें", fileSub: "JPG, PNG या PDF",
+    photo: "फ़ोटो लें", photoSub: "फ़ोन के कैमरे से", scanSub: "किनारे अपने आप पहचानकर काटे जाते हैं", file: "फ़ाइल चुनें", fileSub: "JPG, PNG या PDF",
     sample: "या नमूना आज़माएँ", samples: ["खून की जाँच (अक्टूबर 2026)", "हाथ से लिखा पर्चा"],
     privacy: "सिर्फ़ फ़ोटो पढ़ने के लिए भेजी जाती है। आपकी रिपोर्ट इसी फ़ोन में रहती हैं।",
     reading: "आपकी रिपोर्ट पढ़ी जा रही है", time: "20 से 40 सेकंड",
     check: "सेव करने से पहले जाँचें", match: "क्या यह आपके कागज़ से मेल खाता है?", titleField: "शीर्षक", dateField: "तारीख़",
     save: "सही है, सेव करें", discard: "रद्द करें", pdfTooBig: "PDF 4 MB से बड़ी है। पन्ने की फ़ोटो लेकर कोशिश करें।", failed: "कुछ गड़बड़ हो गई।",
+  },
+  remind: {
+    slot: (slot: string) => `${slot} की दवाइयाँ`, due: "आज जाँच का दिन है",
+    off: "सुबह 8, दोपहर 2 और रात 8 बजे लेने वाली दवाइयों की याद पाएँ, और जाँच वाले दिन सुबह भी।",
+    on: "याद दिलाना चालू है: सुबह 8, दोपहर 2 और रात 8 बजे, और जाँच वाले दिन सुबह।",
+    turnOn: "याद दिलाना चालू करें", turnOff: "बंद करें", channel: "दवा और जाँच की याद",
+    late: "याद दिलाना चालू है, पर फ़ोन इन्हें कुछ मिनट देर से भेज सकता है। ठीक समय के लिए नीचे दबाएँ और अगली स्क्रीन पर अलार्म और रिमाइंडर चालू करें।",
+    exact: "ठीक समय पर याद दिलाएँ",
+    blocked: "BodyMap की सूचनाएँ बंद हैं। फ़ोन की सेटिंग्स में ऐप्स में जाकर इन्हें चालू करें।",
+  },
+  share: {
+    button: "भेजें", dialog: "यह रिपोर्ट भेजें", tests: "सही स्तर से बाहर की जाँचें", meds: "दवाइयाँ", footer: "BodyMap से भेजा गया",
   },
   upcoming: {
     title: "आने वाली तारीख़ें", add: "+ अपॉइंटमेंट जोड़ें", what: "डॉक्टर या काम", when: "तारीख़", time: "समय", place: "जगह (ज़रूरी नहीं)",

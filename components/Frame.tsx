@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import Flow from "./Flow";
 import { useAppMode } from "@/lib/appMode";
+import AppNative from "./AppNative";
 import { setLang, useLang, useT } from "@/lib/i18n";
 import { addPatient, setActivePatient, translateRecord, useAppState, usePatient, useRecords } from "@/lib/store";
 
@@ -117,6 +118,7 @@ export default function Frame({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-2"><LangToggle /><PatientSwitcher /></div>
         </div>
       </header>
+      <AppNative />
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-28 pt-6 md:pb-16 app:pb-28">{children}</main>
       <footer className="mx-auto w-full max-w-6xl px-5 pb-24 pt-6 font-mono text-[11px] leading-relaxed text-muted md:pb-8 app:pb-24">
         {t.footer}<br />{t.credits}

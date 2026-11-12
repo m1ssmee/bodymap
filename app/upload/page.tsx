@@ -1,12 +1,14 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import RecordView from "@/components/RecordView";
 import type { MedRecord } from "@/lib/medical";
 import { useT } from "@/lib/i18n";
+import { native } from "@/lib/native";
 import { addRecord, translateRecord } from "@/lib/store";
 
 type Extracted = Omit<MedRecord, "id">;
+const noop = () => () => {};
 const SAMPLES = [
   { i: 0, url: "/demo/07-blood-oct26.png" },
   { i: 1, url: "/demo/08-rx-handwritten.jpg" },
@@ -56,6 +58,28 @@ export default function Upload() {
 
   const pick = (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) handle(f); };
   const sample = async (url: string) => handle(await (await fetch(url)).blob());
+
+  // In the Android app, Google's document scanner finds the page edges and crops them; one page comes back as a photo,
+  // several as one PDF. On the website, or if the scanner can't start, the phone camera opens as before.
+  const scanner = useSyncExternalStore(noop, () => !!native("DocumentScanner"), () => false);
+  async function scan() {
+    const ds = native("DocumentScanner"), fs = native("Filesystem");
+    if (!ds || !fs) return camRef.current?.click();
+    // First use: Google Play downloads the scanner in the background (it would just close now), so use the camera this once.
+    if (!(await ds.isGoogleDocumentScannerModuleAvailable().catch(() => ({ available: false }))).available) {
+      ds.installGoogleDocumentScannerModule().catch(() => {});
+      return camRef.current?.click();
+    }
+    let res: { scannedImages?: string[]; pdf?: { uri: string; pageCount: number } };
+    try { res = await ds.scanDocument({ galleryImportAllowed: false, pageLimit: 5, resultFormats: "JPEG_PDF", scannerMode: "FULL" }); }
+    catch (e) { if (/failed to start/i.test(String(e))) camRef.current?.click(); return; } // otherwise the user backed out
+    const many = (res.pdf?.pageCount ?? 1) > 1, uri = many ? res.pdf?.uri : res.scannedImages?.[0];
+    if (!uri) return;
+    try {
+      const { data } = await fs.readFile({ path: uri });
+      handle(await (await fetch(`data:${many ? "application/pdf" : "image/jpeg"};base64,${data}`)).blob());
+    } catch { setError(t.upload.failed); }
+  }
 
   function save() {
     if (!rec) return;
@@ -109,9 +133,9 @@ export default function Upload() {
         <div className="space-y-4">
           {error && <div className="rounded-lg border border-[#d4483b]/30 bg-white/80 px-4 py-3 text-[#b13a2f]">{error}</div>}
           <div className="grid gap-3 sm:grid-cols-2">
-            <button onClick={() => camRef.current?.click()} className="rounded-2xl bg-ink px-6 py-7 text-left text-white transition hover:bg-black">
+            <button onClick={scan} className="rounded-2xl bg-ink px-6 py-7 text-left text-white transition hover:bg-black">
               <div className="text-xl font-medium">{t.upload.photo}</div>
-              <div className="mt-1 text-[0.9rem] text-white/60">{t.upload.photoSub}</div>
+              <div className="mt-1 text-[0.9rem] text-white/60">{scanner ? t.upload.scanSub : t.upload.photoSub}</div>
             </button>
             <button onClick={() => fileRef.current?.click()} className="panel px-6 py-7 text-left transition hover:bg-white">
               <div className="text-xl font-medium">{t.upload.file}</div>
