@@ -79,7 +79,7 @@ export default function Upload() {
           <input type="date" value={rec.date} onChange={(e) => setRec({ ...rec, date: e.target.value })} className="field mt-1.5" /></label>
       </div>
       <div className="panel p-6"><RecordView r={rec} /></div>
-      <div className="sticky bottom-20 flex items-center gap-3 md:bottom-6">
+      <div className="sticky bottom-20 flex items-center gap-3 md:bottom-6 app:bottom-[calc(88px+env(safe-area-inset-bottom))]">
         <button onClick={save} className="flex-1 rounded-full bg-ink py-4 font-medium text-white shadow-[0_12px_40px_-12px_rgba(0,0,0,.5)]">{t.upload.save}</button>
         <button onClick={() => { setRec(null); setState("idle"); }} className="rounded-full bg-white/80 px-6 py-4 font-medium">{t.upload.discard}</button>
       </div>

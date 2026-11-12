@@ -29,7 +29,7 @@ export default function Records() {
           <h1 className="mt-4 text-[2.4rem] font-medium leading-[1.05] tracking-[-0.04em] sm:text-6xl">{p.title}</h1>
           <p className="mt-4 max-w-lg text-muted">{p.intro}</p>
         </div>
-        <Link href="/upload" className="rounded-full bg-ink px-6 py-3.5 font-medium text-white transition hover:bg-black">{p.add}</Link>
+        <Link href="/upload" className="rounded-full bg-ink px-6 py-3.5 font-medium text-white transition hover:bg-black app:w-full app:text-center app:font-semibold sm:app:w-auto">{p.add}</Link>
       </div>
 
       {records.length === 0 ? <p className="text-muted">{p.empty}</p> : (

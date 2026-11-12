@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
+import { isApp } from "@/lib/appMode";
 
 type Options = {
   dir: "up" | "down"; // "up": scroll down / drag up moves the page up (landing). "down": the reverse, only at the top (Overview).
@@ -38,6 +39,7 @@ export function useSwipeNav<T extends HTMLElement>({ dir, href, flag, threshold 
   }, [sign, flag, href, router]);
 
   useEffect(() => {
+    if (isApp()) return; // in the app, scrolling is just scrolling: no swipe to the landing and back
     router.prefetch(href);
     let acc = 0, p = 0, y0 = 0, dragging = false, lastWheel = 0, armed = dir === "up";
     let idle: ReturnType<typeof setTimeout> | undefined;

@@ -48,7 +48,7 @@ export default function Overview() {
           </h1>
           <p className="mt-6 max-w-lg font-mono text-[0.85rem] leading-relaxed text-muted">“{quote}”</p>
           <div className="mt-9 flex flex-wrap items-center gap-6">
-            <Link href="/upload" className="group inline-flex items-center gap-3 rounded-full bg-ink px-6 py-3.5 font-medium text-white transition hover:bg-black">
+            <Link href="/upload" className="group inline-flex items-center gap-3 rounded-full bg-ink px-6 py-3.5 font-medium text-white transition hover:bg-black app:w-full app:justify-center app:font-semibold sm:app:w-auto">
               {o.upload} <Arrow />
             </Link>
             <Link href="/body" className="group inline-flex items-center gap-2 font-medium">{o.seeBody} <Arrow /></Link>

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { isApp } from "@/lib/appMode";
 
 // Slow domain-warped noise, like light through water. Rendered at half resolution: it's soft anyway.
 const FRAG = `precision mediump float;
@@ -31,6 +32,7 @@ export default function Flow() {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (isApp()) return; // the app is quiet: plain paper background, no WebGL, no animation loop
     const canvas = ref.current!;
     const gl = canvas.getContext("webgl", { antialias: false, premultipliedAlpha: false });
     if (!gl) return; // CSS gradient behind stays visible
@@ -66,7 +68,7 @@ export default function Flow() {
   }, []);
 
   return (
-    <div aria-hidden className="fixed inset-0 -z-10 bg-[linear-gradient(135deg,#e1e8f4,#d6d4f3_50%,#f1dde9)]">
+    <div aria-hidden className="fixed inset-0 -z-10 app:hidden bg-[linear-gradient(135deg,#e1e8f4,#d6d4f3_50%,#f1dde9)]">
       <canvas ref={ref} className="h-full w-full opacity-0 transition-opacity duration-700" />
     </div>
   );

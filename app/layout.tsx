@@ -21,9 +21,14 @@ export const metadata: Metadata = {
   description: "Upload prescriptions, blood reports, X-rays, MRIs and ultrasounds. Every finding is pinned to your body and explained in plain language.",
 };
 
+// App mode (see lib/appMode.ts), decided before first paint so the website look never flashes in the app.
+// The app opens on Overview: '/' is replaced, so there is no landing, no WebGL start-up and no '/' in back history.
+const APP_SCRIPT = `(function(){var d=document.documentElement,a=/BodyMapApp/.test(navigator.userAgent)||/[?&]app=1(&|$)/.test(location.search);try{if(a)sessionStorage.setItem("bodymap.app","1");else a=sessionStorage.getItem("bodymap.app")==="1"}catch(e){}if(!a)return;d.dataset.app="1";if(location.pathname==="/"){d.style.visibility="hidden";location.replace("/overview")}})()`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${deva.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${deva.variable} h-full antialiased`}>
+      <head><script dangerouslySetInnerHTML={{ __html: APP_SCRIPT }} /></head>
       <body className="h-full font-sans">
         <Frame>{children}</Frame>
       </body>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import Flow from "./Flow";
+import { useAppMode } from "@/lib/appMode";
 import { setLang, useLang, useT } from "@/lib/i18n";
 import { addPatient, setActivePatient, translateRecord, useAppState, usePatient, useRecords } from "@/lib/store";
 
@@ -15,6 +16,14 @@ const LINKS = [
   { href: "/upload", key: "upload" },
 ] as const;
 const TABS = LINKS.filter((l) => l.key !== "upload"); // phone tab bar: Overview and Records both have an upload button
+// Tab icons, shown only in the app (24px line icons, drawn here: no icon library)
+const ICON: Record<(typeof TABS)[number]["key"], React.ReactNode> = {
+  overview: <path d="M3.5 11 12 4l8.5 7M6 9v11h12V9M10 20v-5h4v5" />,
+  body: <><circle cx="12" cy="4.5" r="2" /><path d="M12 8v7m-5-5.5L12 8l5 1.5M8.5 21l3.5-6 3.5 6" /></>,
+  records: <path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6" />,
+  medicines: <g transform="rotate(-45 12 12)"><rect x="3" y="8.5" width="18" height="7" rx="3.5" /><path d="M12 8.5v7" /></g>,
+  trends: <path d="M3 20h18M4 16l5-5 4 3 7-7M15 7h5v5" />,
+};
 
 function LangToggle() {
   const lang = useLang();
@@ -42,13 +51,13 @@ function PatientSwitcher() {
 
   return (
     <>
-      <button popoverTarget="patients" className="flex min-h-11 items-center gap-2 rounded-md px-2 py-1.5 text-[0.95rem] font-medium hover:bg-black/5">
+      <button popoverTarget="patients" className="flex min-h-11 items-center gap-2 rounded-md px-2 py-1.5 text-[0.95rem] font-medium hover:bg-black/5 app:gap-1 app:px-1">
         <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-semibold text-white">{patient.name[0]}</span>
         <span className="hidden sm:inline">{patient.name}, {patient.age}</span>
         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
       </button>
       <div ref={pop} id="patients" popover="auto"
-        className="fixed inset-auto right-4 top-16 m-0 w-80 rounded-xl border border-line bg-white p-2 text-ink shadow-[0_20px_60px_-20px_rgba(0,0,0,.35)]">
+        className="fixed inset-auto right-4 top-16 m-0 w-80 rounded-xl border border-line bg-white p-2 text-ink shadow-[0_20px_60px_-20px_rgba(0,0,0,.35)] app:top-[calc(4rem+env(safe-area-inset-top))] app:max-h-[calc(100dvh-5rem-env(safe-area-inset-top))] app:max-w-[calc(100vw-2rem)] app:overflow-y-auto">
         <div className="label px-3 pb-1 pt-2">{t.patients.title}</div>
         {patients.map((p) => (
           <button key={p.id} onClick={() => { setActivePatient(p.id); close(); }}
@@ -76,6 +85,8 @@ export default function Frame({ children }: { children: React.ReactNode }) {
   const t = useT(), lang = useLang();
   const records = useRecords();
   const active = (href: string) => path.startsWith(href);
+  const page = LINKS.find((l) => active(l.href));
+  useAppMode();
 
   useEffect(() => { document.documentElement.lang = lang; }, [lang]); // screen readers + voices follow the toggle
   useEffect(() => { if (lang === "hi") records.forEach((r) => translateRecord(r)); }, [lang, records]); // fill in any Hindi still missing
@@ -90,10 +101,14 @@ export default function Frame({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-full flex-col text-ink">
       <Flow />
-      <header className="rise-fade sticky top-0 z-20 bg-white/55 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-5">
-          <Link href="/" onClick={() => { document.documentElement.dataset.drop = "1"; }} className="latin text-lg font-semibold tracking-tight"><span className="opacity-40">{"//"}</span>BodyMap</Link>
-          <nav className="hidden gap-6 text-[0.9rem] md:flex">
+      <header className="rise-fade sticky top-0 z-20 bg-white/55 backdrop-blur-md app:border-b app:border-line app:bg-paper app:pt-[env(safe-area-inset-top)] app:backdrop-blur-none">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-5 app:gap-3">
+          <div className="contents app:block app:min-w-0">{/* app: the mark sits small above the page title, and isn't a way out to the landing */}
+            <Link href="/" onClick={() => { document.documentElement.dataset.drop = "1"; }} className="latin text-lg font-semibold tracking-tight app:hidden"><span className="opacity-40">{"//"}</span>BodyMap</Link>
+            <span className="latin hidden text-[15px] font-semibold leading-tight text-muted app:block">{"//"}BodyMap</span>
+            <span className="hidden truncate text-[1.05rem] font-semibold leading-tight app:block">{page && t.nav[page.key]}</span>
+          </div>
+          <nav className="hidden gap-6 text-[0.9rem] md:flex app:hidden">
             {LINKS.map((l) => (
               <Link key={l.href} href={l.href}
                 className={active(l.href) ? "font-medium underline decoration-1 underline-offset-[6px]" : "text-muted hover:text-ink"}>{t.nav[l.key]}</Link>
@@ -102,14 +117,15 @@ export default function Frame({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-2"><LangToggle /><PatientSwitcher /></div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-28 pt-6 md:pb-16">{children}</main>
-      <footer className="mx-auto w-full max-w-6xl px-5 pb-24 pt-6 font-mono text-[11px] leading-relaxed text-muted md:pb-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-28 pt-6 md:pb-16 app:pb-28">{children}</main>
+      <footer className="mx-auto w-full max-w-6xl px-5 pb-24 pt-6 font-mono text-[11px] leading-relaxed text-muted md:pb-8 app:pb-24">
         {t.footer}<br />{t.credits}
       </footer>
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      <nav data-tabs className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden app:bg-white app:backdrop-blur-none">
         {TABS.map((l) => (
-          <Link key={l.href} href={l.href}
+          <Link key={l.href} href={l.href} aria-current={active(l.href) ? "page" : undefined}
             className={`border-t-2 py-3 text-center text-[13px] ${active(l.href) ? "border-ink font-semibold" : "border-transparent text-muted"}`}>
+            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="hidden app:block">{ICON[l.key]}</svg>
             {l.key === "body" ? t.nav.bodyShort : t.nav[l.key]}
           </Link>
         ))}
