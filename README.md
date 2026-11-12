@@ -33,3 +33,22 @@ Set `GEMINI_KEYS` (and optionally `GEMINI_MODEL`) under the Vercel project's Set
 Live demo uploads: `07-blood-oct26` (lights the liver red, HbA1c trend climbs) and the handwritten prescription (`08-rx-handwritten`, or write it by hand).
 
 - Hindi type: Anek Devanagari (Ek Type, SIL Open Font License), self-hosted in app/fonts, scaled 112% so it sits level with Geist.
+
+## Android app
+`mobile/` is a Capacitor 8 shell that opens the live site (https://bodymap-qu9s.vercel.app) in a WebView. It has its own `package.json`, and Vercel never installs or builds it. The app adds `BodyMapApp` to its user agent, which turns on the calm app mode, and it includes native text-to-speech for "Listen".
+
+Setup (needs Android Studio, which bundles a JDK and the Android SDK):
+```bash
+cd mobile && npm install && npx cap sync android && npx cap open android
+```
+
+Test against `npm run dev`:
+- Emulator: `CAP_SERVER_URL=http://10.0.2.2:3000 npx cap sync android`, then run from Android Studio.
+- Phone on the same Wi-Fi: start the server with `npm run dev -- -H 0.0.0.0`, then `CAP_SERVER_URL=http://<Mac LAN IP>:3000 npx cap sync android`.
+- When you're done, run plain `npx cap sync android` again. Otherwise the app keeps loading your dev server.
+
+The app shows whatever is deployed on Vercel, so web changes reach it only after a push to `main`.
+
+Offline: if the site can't load, the app shows `mobile/www/offline.html` ("BodyMap needs an internet connection" with a big "Try again" button).
+
+Icons and splash come from `mobile/assets/`. Regenerate them with `npx capacitor-assets generate --android --iconBackgroundColor '#5b7f73' --splashBackgroundColor '#f6f4ef' --splashBackgroundColorDark '#f6f4ef'`.

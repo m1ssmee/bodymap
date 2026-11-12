@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- BodyMap app calm palette -->
+    <color name="bodymap_bg">#F6F4EF</color>
+    <color name="bodymap_text">#1F2A2A</color>
+    <color name="bodymap_sage">#5B7F73</color>
+</resources>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BodyMap</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #f6f4ef; color: #1f2a2a; }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 32px; padding: 24px; box-sizing: border-box; text-align: center;
+    font: 22px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  h1 { font-size: 28px; font-weight: 600; margin: 0; }
+  p { margin: 0; max-width: 22em; }
+  button {
+    min-height: 64px; min-width: 240px; padding: 0 32px; border: 0; border-radius: 16px;
+    background: #5b7f73; color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+  }
+  button:focus-visible { outline: 3px solid #1f2a2a; outline-offset: 3px; }
+</style>
+</head>
+<body>
+  <h1>BodyMap needs an internet connection</h1>
+  <p>Please check your Wi-Fi or mobile data, then try again.</p>
+  <!-- Capacitor serves this page at the server's own origin, so this is the configured server URL. -->
+  <button type="button" onclick="location.href = location.origin + '/'">Try again</button>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/bodymap_sage</item>
+        <item name="colorPrimaryDark">@color/bodymap_bg</item>
+        <item name="colorAccent">@color/bodymap_sage</item>
+    </style>
+
+    <!-- Always light (the app has one calm look). The window behind the system bars
+         is the BodyMap background; SystemBars (capacitor.config.ts) pads the WebView
+         inside the bars and sets dark icons. -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@null</item>
+        <item name="android:windowBackground">@color/bodymap_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/bodymap_bg</item>
+        <item name="android:windowBackground">@color/bodymap_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
