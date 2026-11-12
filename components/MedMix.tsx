@@ -29,7 +29,7 @@ export default function MedMix({ meds }: { meds: Medicine[] }) {
       <div className="panel divide-y divide-line">
         {cards.map((c, i) => (
           <div key={i} className="px-5 py-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">{/* the app's big Listen drops below a long title */}
               <div>
                 <div className="font-medium">{c.title[lang]}</div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
