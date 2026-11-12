@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon for reminders: a pill, in white (Android tints it). Matches the Medicines tab icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <group android:pivotX="12" android:pivotY="12" android:rotation="-45">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M11.4,8.5h-4.9a3.5,3.5 0,0 0,0 7h4.9z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M12.6,8.5h4.9a3.5,3.5 0,0 1,0 7h-4.9z" />
+    </group>
+</vector>

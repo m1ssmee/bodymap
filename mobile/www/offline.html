@@ -9,9 +9,9 @@
   body {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 32px; padding: 24px; box-sizing: border-box; text-align: center;
-    font: 22px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 22px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
   }
-  h1 { font-size: 28px; font-weight: 600; margin: 0; }
+  h1 { font-size: 28px; font-weight: 600; margin: 0 0 8px; }
   p { margin: 0; max-width: 22em; }
   button {
     min-height: 64px; min-width: 240px; padding: 0 32px; border: 0; border-radius: 16px;
@@ -21,9 +21,17 @@
 </style>
 </head>
 <body>
-  <h1>BodyMap needs an internet connection</h1>
-  <p>Please check your Wi-Fi or mobile data, then try again.</p>
-  <!-- Capacitor serves this page at the server's own origin, so this is the configured server URL. -->
-  <button type="button" onclick="location.href = location.origin + '/'">Try again</button>
+  <!-- Served from the app itself (https://localhost), so it can't read the language chosen on the site: show both. -->
+  <div lang="en">
+    <h1>BodyMap needs an internet connection</h1>
+    <p>Please check your Wi-Fi or mobile data, then try again.</p>
+  </div>
+  <div lang="hi">
+    <h1>BodyMap को इंटरनेट चाहिए</h1>
+    <p>अपना वाई-फ़ाई या मोबाइल डेटा देखें, फिर दोबारा कोशिश करें।</p>
+  </div>
+  <button type="button" onclick="location.href = window.SERVER_URL">Try again · दोबारा कोशिश करें</button>
+  <!-- set-server-url.mjs fills this in the copy inside the app; Capacitor serves nothing else from this address -->
+  <script>window.SERVER_URL = "__SERVER_URL__";</script>
 </body>
 </html>

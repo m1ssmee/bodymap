@@ -29,10 +29,14 @@
         </provider>
     </application>
 
-    <!-- Lets @capacitor-community/text-to-speech find the TTS engine on Android 11+. -->
+    <!-- Android 11+ only lets the app see what it declares: the TTS engine for Listen, and the camera app so
+         "Take a photo" opens the camera (without this the WebView falls back to the photo picker). -->
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
         </intent>
     </queries>
 

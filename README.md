@@ -35,20 +35,28 @@ Live demo uploads: `07-blood-oct26` (lights the liver red, HbA1c trend climbs) a
 - Hindi type: Anek Devanagari (Ek Type, SIL Open Font License), self-hosted in app/fonts, scaled 112% so it sits level with Geist.
 
 ## Android app
-`mobile/` is a Capacitor 8 shell that opens the live site (https://bodymap-qu9s.vercel.app) in a WebView. It has its own `package.json`, and Vercel never installs or builds it. The app adds `BodyMapApp` to its user agent, which turns on the calm app mode, and it includes native text-to-speech for "Listen".
+`mobile/` is a Capacitor 8 app (`app.bodymap`) that opens the live site (https://bodymap-qu9s.vercel.app) in a WebView. It has its own `package.json`, and Vercel never installs or builds it. The app adds `BodyMapApp` to its user agent, which turns on the calm app mode. The site reaches the native plugins through `window.Capacitor.Plugins` (see `lib/native.ts`); on the website they are simply absent.
 
-Setup (needs Android Studio, which bundles a JDK and the Android SDK):
+What the app adds over the website:
+- **Reminders**: a notification at 8 AM, 2 PM and 8 PM listing that time's medicines, and one at 9 AM when a check-up from Upcoming is due, for every family member. Turned on from the Medicines page (`components/AppNative.tsx`, `lib/reminders.ts`). Android 14+ needs "Alarms & reminders" switched on for exact times; the card offers it, otherwise reminders may come a few minutes late.
+- **Scan a document**: "Take a photo" opens Google's ML Kit document scanner (finds the edges, crops; several pages become one PDF). The first time, Google Play downloads the scanner and the camera opens instead.
+- **Share**: a record's summary as text, through Android's share sheet (WhatsApp, SMS…).
+- **Read aloud** with the phone's own voice (Hindi works on phones with Google's speech services), and the **back button** goes back a page, then leaves the app from the first page.
+
+Build (needs Java 21 and the Android SDK; Android Studio bundles both, or `brew install openjdk@21 android-commandlinetools`):
 ```bash
-cd mobile && npm install && npx cap sync android && npx cap open android
+cd mobile && npm install && npx cap sync android && cd android && ./gradlew assembleDebug
 ```
+The APK is `mobile/android/app/build/outputs/apk/debug/app-debug.apk`. Install it with `adb install -r` or open the folder in Android Studio.
 
-Test against `npm run dev`:
-- Emulator: `CAP_SERVER_URL=http://10.0.2.2:3000 npx cap sync android`, then run from Android Studio.
+Test against a local server:
+- Emulator: `CAP_SERVER_URL=http://10.0.2.2:3000 npx cap sync android`, then rebuild.
 - Phone on the same Wi-Fi: start the server with `npm run dev -- -H 0.0.0.0`, then `CAP_SERVER_URL=http://<Mac LAN IP>:3000 npx cap sync android`.
-- When you're done, run plain `npx cap sync android` again. Otherwise the app keeps loading your dev server.
+- The dev server's live reload can bounce the app to its offline screen after the scanner or another app was open; test that kind of flow against `npm run build && npx next start -p 3001` instead.
+- When you're done, run plain `npx cap sync android` again. Otherwise the app keeps loading your local server.
 
-The app shows whatever is deployed on Vercel, so web changes reach it only after a push to `main`.
+The app shows whatever is deployed on Vercel, so web changes reach it only after a push to `main`. Native changes (plugins, icons, `mobile/`) need a new APK.
 
-Offline: if the site can't load, the app shows `mobile/www/offline.html` ("BodyMap needs an internet connection" with a big "Try again" button).
+Offline: if the site can't load, the app shows `mobile/www/offline.html` in English and Hindi with a big "Try again" button. Capacitor serves that page from the app itself, so after every sync `mobile/set-server-url.mjs` writes the site's address into the copied page.
 
-Icons and splash come from `mobile/assets/`. Regenerate them with `npx capacitor-assets generate --android --iconBackgroundColor '#5b7f73' --splashBackgroundColor '#f6f4ef' --splashBackgroundColorDark '#f6f4ef'`.
+Icons and splash come from `mobile/assets/`; the reminder icon is `res/drawable/ic_stat_bodymap.xml`. Regenerate the app icons with `npx capacitor-assets generate --android --iconBackgroundColor '#5b7f73' --splashBackgroundColor '#f6f4ef' --splashBackgroundColorDark '#f6f4ef'`.

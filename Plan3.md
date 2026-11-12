@@ -1,4 +1,4 @@
-# Plan3 — BodyMap for Android (awaiting approval)
+# Plan3 — BodyMap for Android (phases 1 and 2 built 13 Nov 2026; Play Store on hold)
 
 ## Where it stands (found 12 Nov 2026, all uncommitted, from the 10 Nov session)
 - `mobile/`: a Capacitor 8 app (`app.bodymap`) that opens the live site in a WebView. It adds "BodyMapApp" to the user
@@ -61,3 +61,25 @@
 ## Not in this round
 - iPhone. Capacitor can add iOS later, but it needs Xcode and a $99/year Apple developer account.
 - Offline reading of reports, custom reminder times, home-screen widget, voice questions.
+
+## Status — phases 1 and 2 built 13 Nov 2026
+Tested on an Android 15 emulator with a 360 px wide "small phone" screen, against the dev server and a local
+production build. Not yet tried on a real phone.
+- Phase 1 checks: app mode, 3D body (54 fps on the emulator, which borrows the Mac's GPU), Hindi read-aloud with the
+  phone's voice, offline screen, back button.
+- Fixed on the way:
+  - "Try again" on the offline screen opened a blank page. Capacitor serves that page from the app itself, so
+    `mobile/set-server-url.mjs` now writes the site address into it after every sync, and it shows English and Hindi.
+  - Back did nothing on the first page. It now goes back a page, or leaves the app from the first page.
+  - App mode: page names in the header fit at 360 px; on My Body the name and legend sit above and below the figure.
+  - "Take a photo" opened the photo picker. The manifest now declares the camera so the camera opens.
+- Reminders: 8 AM, 2 PM, 8 PM per family member ("Lakshmi: Afternoon medicines", body lists the medicines) and
+  9 AM on the day a check-up is due. Tapping one opens Medicines or Overview for that person. Hindi titles follow the
+  language switch. Android 14+ keeps exact times off until the user allows "Alarms & reminders"; the card explains
+  this and opens that screen, and background updates never open it.
+- Scanning: Google's ML Kit scanner (edges, crop, filters). The first time, Google Play downloads it and the camera
+  opens instead. Several pages become one PDF (not yet tried with a real multi-page document).
+- Share: the record as text through Android's share sheet; also on phone browsers that support sharing.
+- Known limits: the weekly vitamin D sachet is reminded daily, as the Medicines page lists it; 3D speed on a budget
+  phone is unknown.
+

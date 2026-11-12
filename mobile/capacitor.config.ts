@@ -20,6 +20,11 @@ const config: CapacitorConfig = {
     appendUserAgent: 'BodyMapApp',
   },
   plugins: {
+    // Reminder notifications: white pill in the status bar, tinted sage in the shade.
+    LocalNotifications: {
+      smallIcon: 'ic_stat_bodymap',
+      iconColor: '#5b7f73',
+    },
     // Capacitor 8 edge-to-edge: 'native' pads the WebView inside the status and
     // navigation bars (unless the page opts in with viewport-fit=cover).
     // 'LIGHT' = dark icons for a light background.
