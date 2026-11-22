@@ -1,6 +1,6 @@
 // Server-only Gemini call shared by the /api routes (extract, translate, interactions).
 // These keys only work on the Interactions API; newest models are often overloaded, so fall back across fast ones.
-const MODELS = process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3-flash-preview"];
+const MODELS = process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.6-flash"]; // fastest first: on 22 Nov 2026 3.6 hung and 3.5 took 14-28 s
 const KEYS = (process.env.GEMINI_KEYS ?? "").split(",").map((k) => k.trim()).filter(Boolean);
 let cursor = 0; // ponytail: per-instance round robin, fine for a demo; shared counter (KV) if keys burn unevenly
 

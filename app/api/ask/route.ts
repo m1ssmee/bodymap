@@ -1,6 +1,6 @@
 import { askGemini } from "@/lib/gemini";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 // Generation step of "Ask" (RAG): the browser has already picked the relevant passages with BM25 (lib/retrieve.ts);
 // the model may answer only from them and must say which ones it used.
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   if (ps.reduce((n, p) => n + p.text.length, 0) > 12_000) return Response.json({ error: "Too much to read." }, { status: 413 });
 
   const context = ps.map((p) => `[${p.id}]${p.date ? ` (${p.date})` : ""} ${p.text}`).join("\n");
-  const res = await askGemini([{ type: "text", text: `${PROMPT(lang)}${context || "(none)"}\n\nQuestion: ${question.trim()}` }], SCHEMA, 25_000, 14_000);
+  const res = await askGemini([{ type: "text", text: `${PROMPT(lang)}${context || "(none)"}\n\nQuestion: ${question.trim()}` }], SCHEMA, 50_000, 14_000); // room for two fallbacks if a model hangs
   if (!res.ok) return Response.json({ error: res.error }, { status: res.status });
   const answer = typeof res.data.answer === "string" ? res.data.answer : "";
   if (!answer) return Response.json({ error: "No answer came back. Please try again." }, { status: 502 });

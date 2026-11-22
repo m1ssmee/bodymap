@@ -278,13 +278,13 @@ We tested the first three on demo patient Ramesh (53 passages) to show the real 
 |---|---|---|
 | Question length | 300 characters | Longer questions are rejected with "Bad request". Raising it is safe but lets people send more text to Gemini. |
 | Passages per request | 12 max, 1,200 characters each, 12,000 total | Limits how much text one request can send to Gemini, which caps cost and stops abuse. Raise it only if you also raise `k`. |
-| Time limit | 25 s total, 14 s per try | **Lower:** errors come sooner when Gemini is slow. **Higher:** fewer errors, but users wait longer. It must stay under `maxDuration` (30 s), or Vercel cuts the request off. |
+| Time limit | 50 s total, 14 s per try | **Lower:** errors come sooner when Gemini is slow. **Higher:** fewer errors, but users wait longer. It must stay under `maxDuration` (60 s), or Vercel cuts the request off. |
 | Answer rules (in `PROMPT`) | at most 4 sentences, under 18 words each | Change the text to make answers longer, shorter or more formal. The "never change a medicine" rule should stay. |
 
 ### Calling Gemini (`lib/gemini.ts`)
 | Setting | Now | If you change it |
 |---|---|---|
-| `MODELS` | 3.6 Flash → 3.5 Flash → 3 Flash preview | The order models are tried in. Newer models may read better but are more often overloaded. You can also set the `GEMINI_MODEL` environment variable to force one model. |
+| `MODELS` | 3 Flash preview → 3.5 Flash → 3.6 Flash | The order models are tried in. Newer models may read better but are more often overloaded. You can also set the `GEMINI_MODEL` environment variable to force one model. |
 | `temperature` | 0.2 | How "creative" Gemini is. **Higher (0.7+):** more varied wording, and more risk of made-up details. **0:** the same answer every time. Keep it low for medical text. |
 | `thinking_level` | low | **Higher:** the model reasons more first, which is slower but can read hard documents better. |
 | `budgetMs` / `attemptMs` | 52 s / 30 s (defaults) | Total time for all retries, and the time one try may take before moving on to the next key or model. |

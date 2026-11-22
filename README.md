@@ -37,7 +37,7 @@ Set `GEMINI_KEYS` (and optionally `GEMINI_MODEL`) under the Vercel project's Set
 
 ## Gemini notes
 - These keys only work on the Gemini **Interactions** API (`/v1beta/interactions`), which the route uses.
-- Models tried in order: gemini-3.6-flash, gemini-3.5-flash, gemini-3-flash-preview. 3.7/3.8 Flash were overloaded on 28 Oct 2026. Override with `GEMINI_MODEL`.
+- Models tried in order: gemini-3-flash-preview, gemini-3.5-flash, gemini-3.6-flash (fastest first; on 22 Nov 2026 3.6 hung and 3.5 took 14–28 s). Override with `GEMINI_MODEL`.
 - Each request rotates keys; any key that fails (quota, billing, invalid) is skipped. Lab severity is computed from the printed reference range, not guessed by the model.
 
 ## 3D body
