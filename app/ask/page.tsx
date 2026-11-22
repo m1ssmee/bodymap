@@ -6,6 +6,7 @@ import { useLang, useT } from "@/lib/i18n";
 import { localToday, upcoming } from "@/lib/medical";
 import { buildPassages, retrieve, type Hit, type Passage, type QueryTerm } from "@/lib/retrieve";
 import { useAppointments, useConditions, useDone, useLocalRecords, usePatient } from "@/lib/store";
+import { noop } from "@/lib/native";
 
 type Turn = { id: string; q: string; terms: QueryTerm[]; hits: Hit[]; answer?: string; cites?: Passage[]; error?: string };
 
@@ -16,7 +17,6 @@ const getRecogniser = () => {
   const w = window as unknown as { SpeechRecognition?: new () => Recogniser; webkitSpeechRecognition?: new () => Recogniser };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
 };
-const noop = () => () => {};
 
 export default function Ask() {
   const t = useT(), a = t.ask, lang = useLang();
@@ -47,7 +47,7 @@ export default function Ask() {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ question, lang, passages: hits.map(({ passage: { id, text, date } }) => ({ id, text: text.slice(0, 1200), date })) }),
       });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({})); // Vercel limit/timeout pages are plain text
       if (!res.ok) throw new Error(json.error);
       const byId = new Map(hits.map((h) => [h.passage.id, h.passage]));
       const cites = (json.citations as string[]).map((c) => byId.get(c)!).filter((p, k, all) => all.findIndex((x) => x.href === p.href) === k); // one chip per page

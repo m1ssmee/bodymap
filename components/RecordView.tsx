@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from "react";
 import { useLang, useT, type Strings } from "@/lib/i18n";
 import { level, trend, type Lab, type MedRecord } from "@/lib/medical";
-import { native } from "@/lib/native";
+import { native, noop } from "@/lib/native";
 import { Sev } from "./Bits";
 import { LevelWord, TrendWord, ZoneBar, rangeText } from "./Charts";
 import Speak, { PILL } from "./Speak";
@@ -116,7 +116,6 @@ function summary(r: Omit<MedRecord, "id">, t: Strings) {
   ].join("\n");
 }
 
-const noop = () => () => {};
 
 // Android's share sheet in the app; the browser's own share where it has one (phones); hidden otherwise.
 function Share({ r }: { r: Omit<MedRecord, "id"> }) {

@@ -18,3 +18,6 @@ export function listen(name: string, event: string, callback: (data: any) => voi
   const handle = native(name)?.addListener(event, callback);
   return () => { Promise.resolve(handle).then((h) => h?.remove()); };
 }
+
+// For useSyncExternalStore reads that never change after load (a plugin present, today's date): nothing to subscribe to.
+export const noop = () => () => {};

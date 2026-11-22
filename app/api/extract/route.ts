@@ -1,5 +1,5 @@
 import { askGemini } from "@/lib/gemini";
-import { KINDS, REGIONS, type MedRecord } from "@/lib/medical";
+import { gradeFromRanges, KINDS, REGIONS, type MedRecord } from "@/lib/medical";
 
 export const maxDuration = 60;
 
@@ -86,20 +86,4 @@ export async function POST(req: Request) {
     followUps: (r.followUps ?? []).filter((f: { title?: string; date?: string }) => f.title && /^\d{4}-\d{2}-\d{2}$/.test(f.date ?? "")),
   };
   return Response.json(gradeFromRanges(record));
-}
-
-// Lab severity comes from the printed reference range, not the model's judgement: a finding that cites a lab
-// more than 1.5x past its limit is "attention", any out-of-range lab is at least "watch". Only ever raises severity.
-function gradeFromRanges(r: Omit<MedRecord, "id">) {
-  const rank = { normal: 0, watch: 1, attention: 2 } as const;
-  for (const f of r.findings) {
-    const text = `${f.title} ${f.quote}`.toLowerCase();
-    for (const l of r.labs) {
-      if (!text.includes(l.name.split(/[ (]/)[0].toLowerCase())) continue;
-      const ratio = l.high !== null && l.value > l.high ? l.value / l.high : l.low !== null && l.value < l.low ? l.low / l.value : 1;
-      const s = ratio > 1.5 ? "attention" : ratio > 1 ? "watch" : "normal";
-      if (rank[s] > rank[f.severity]) f.severity = s;
-    }
-  }
-  return r;
 }

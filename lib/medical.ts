@@ -92,6 +92,21 @@ export function regionSummary(records: MedRecord[]): RegionSummary[] {
   }).sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] || b.latest.record.date.localeCompare(a.latest.record.date));
 }
 
+// Lab severity comes from the printed reference range, not the model's judgement: a finding that cites a lab
+// more than 1.5x past its limit is "attention", any out-of-range lab is at least "watch". Only ever raises severity.
+export function gradeFromRanges<R extends Pick<MedRecord, "findings" | "labs">>(r: R) {
+  for (const f of r.findings) {
+    const text = `${f.title} ${f.quote}`.toLowerCase();
+    for (const l of r.labs) {
+      if (!text.includes(l.name.split("(")[0].trim().toLowerCase())) continue;
+      const ratio = l.high !== null && l.value > l.high ? l.value / l.high : l.low !== null && l.value < l.low ? l.low / l.value : 1;
+      const s: Severity = ratio > 1.5 ? "attention" : ratio > 1 ? "watch" : "normal";
+      if (SEVERITY_RANK[s] > SEVERITY_RANK[f.severity]) f.severity = s;
+    }
+  }
+  return r;
+}
+
 // ---- plain-language reading of a number ----
 // How far outside the healthy range, as a fraction of the limit (0 when inside).
 export const distance = (v: number, low: number | null, high: number | null) =>
@@ -174,7 +189,7 @@ export function upcoming(records: MedRecord[], appointments: Appointment[], cond
     const date = last ? addMonths(last, rule.months) : today;
     // a doctor already asked for this test around then: don't list it twice
     if (items.some((i) => i.kind === "followup" && i.title.includes(rule.lab.split(" ")[0]) && Math.abs(daysBetween(i.date, date)) < 120)) continue;
-    items.push({ kind: "routine", key: `r:${rule.lab}:${date}`, date, lab: rule.lab, months: rule.months, last });
+    items.push({ kind: "routine", key: `r:${rule.lab}:${last ?? ""}`, date, lab: rule.lab, months: rule.months, last });
   }
   return items.filter((i) => !done.includes(i.key)).sort((a, b) => a.date.localeCompare(b.date));
 }

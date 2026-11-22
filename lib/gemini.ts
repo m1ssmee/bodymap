@@ -1,4 +1,4 @@
-// Server-only Gemini call shared by /api/extract and /api/translate.
+// Server-only Gemini call shared by the /api routes (extract, translate, interactions).
 // These keys only work on the Interactions API; newest models are often overloaded, so fall back across fast ones.
 const MODELS = process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3-flash-preview"];
 const KEYS = (process.env.GEMINI_KEYS ?? "").split(",").map((k) => k.trim()).filter(Boolean);

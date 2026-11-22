@@ -153,7 +153,7 @@ export function retrieve(question: string, passages: Passage[], k = 8) {
   if (!hits.length) {
     const general = new Set(["patient", "current-medicines"]);
     hits = ranked.filter((h) => general.has(h.passage.id) || h.passage.id.endsWith(":s"))
-      .sort((a, b) => b.passage.date.localeCompare(a.passage.date)).slice(0, k);
+      .sort((a, b) => +general.has(b.passage.id) - +general.has(a.passage.id) || b.passage.date.localeCompare(a.passage.date)).slice(0, k); // patient + medicines first: they have no date
   }
   return { terms, hits };
 }

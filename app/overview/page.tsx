@@ -7,8 +7,8 @@ import { useT } from "@/lib/i18n";
 import { currentMedicines, regionSummary } from "@/lib/medical";
 import { useConditions, useLocalRecords, usePatient } from "@/lib/store";
 import { useSwipeNav } from "@/components/useSwipeNav";
+import { noop } from "@/lib/native";
 
-const noop = () => () => {};
 const useClock = () => useSyncExternalStore(noop, () => new Date().getHours() * 1000 + Math.floor(Date.now() / 86_400_000) % 1000, () => -1);
 
 export default function Overview() {

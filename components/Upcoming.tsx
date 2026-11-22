@@ -3,8 +3,8 @@ import { useState, useSyncExternalStore } from "react";
 import { useT } from "@/lib/i18n";
 import { daysBetween, localToday, upcoming, type UpcomingItem } from "@/lib/medical";
 import { addAppointment, markDone, removeAppointment, useAppointments, useDone, useLocalRecords, usePatient } from "@/lib/store";
+import { noop } from "@/lib/native";
 
-const noop = () => () => {};
 const useToday = () => useSyncExternalStore(noop, localToday, () => ""); // "" while prerendering
 
 export default function Upcoming() {

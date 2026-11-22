@@ -36,7 +36,7 @@ const EN = {
     intro: "Ask in your own words, by typing or speaking. Answers come only from your records, with the records they used.",
     placeholder: "Type your question…", send: "Ask", speak: "Speak", listening: "Listening…", thinking: "Reading your records…",
     suggestions: ["Is my sugar getting better?", "What is each medicine for?", "When is my next check-up?", "Is my liver okay?"],
-    sources: "From", how: "How this answer was found", searched: "Words searched", added: "added for", score: "score",
+    sources: "From", how: "How this answer was found", searched: "Words searched", added: "added for",
     noRecords: "No records yet. Upload a report, then ask about it.", failed: "Couldn't answer right now. Please try again.",
     note: "Answers explain your records. They are not medical advice. Ask your doctor before changing anything.",
     card: "Ask a question about your records", cardHint: "In your own words, in English or Hindi.",
@@ -54,7 +54,6 @@ const EN = {
     attention: "Needs attention", add: "+ Add",
     nothingFlagged: "Nothing flagged in your records.",
     noRecords: "No records yet. Upload a report and anything worth watching shows up here.",
-    nothingHere: "Nothing here yet.",
     quotes: [
       "Be patient with your body. It has carried you this far.",
       "Small numbers, moved slowly, change a life.",
@@ -111,7 +110,7 @@ const EN = {
     privacy: "Only the image is sent to be read. Your records stay on this device.",
     reading: "Reading your document", time: "20 to 40 seconds",
     check: "Check before saving", match: "Does this match your paper?", titleField: "Title", dateField: "Date",
-    save: "Looks right, save", discard: "Discard", pdfTooBig: "PDF is larger than 4 MB. Try a photo of the page instead.", failed: "Something went wrong.",
+    save: "Looks right, save", discard: "Discard", pdfTooBig: "PDF is larger than 3 MB. Try a photo of the page instead.", failed: "Something went wrong.",
   },
   remind: {
     slot: (slot: string) => `${slot} medicines`, due: "Check-up due today",
@@ -162,7 +161,7 @@ const HI: typeof EN = {
     intro: "अपने शब्दों में लिखकर या बोलकर पूछें। जवाब सिर्फ़ आपकी रिपोर्ट से आता है, और साथ में बताता है कि कौन सी रिपोर्ट से।",
     placeholder: "अपना सवाल लिखें…", send: "पूछें", speak: "बोलें", listening: "सुन रहे हैं…", thinking: "आपकी रिपोर्ट पढ़ रहे हैं…",
     suggestions: ["मेरी शुगर सुधर रही है क्या?", "हर दवा किस लिए है?", "अगली जाँच कब है?", "मेरा लिवर ठीक है?"],
-    sources: "स्रोत", how: "यह जवाब कैसे मिला", searched: "खोजे गए शब्द", added: "इससे जोड़ा", score: "स्कोर",
+    sources: "स्रोत", how: "यह जवाब कैसे मिला", searched: "खोजे गए शब्द", added: "इससे जोड़ा",
     noRecords: "अभी कोई रिपोर्ट नहीं है। पहले रिपोर्ट अपलोड करें, फिर उसके बारे में पूछें।", failed: "अभी जवाब नहीं मिल सका। कृपया फिर से कोशिश करें।",
     note: "जवाब आपकी रिपोर्ट समझाते हैं, ये डॉक्टर की सलाह नहीं हैं। कुछ भी बदलने से पहले डॉक्टर से पूछें।",
     card: "अपनी रिपोर्ट के बारे में सवाल पूछें", cardHint: "अपने शब्दों में, हिंदी या अंग्रेज़ी में।",
@@ -180,7 +179,6 @@ const HI: typeof EN = {
     attention: "ध्यान देने की ज़रूरत", add: "+ जोड़ें",
     nothingFlagged: "आपकी रिपोर्ट में कुछ भी चिंता वाला नहीं है।",
     noRecords: "अभी कोई रिपोर्ट नहीं है। रिपोर्ट जोड़ें, ध्यान देने वाली बातें यहाँ दिखेंगी।",
-    nothingHere: "अभी यहाँ कुछ नहीं है।",
     quotes: [
       "अपने शरीर के साथ धीरज रखें। इसने आपको यहाँ तक पहुँचाया है।",
       "छोटे-छोटे बदलाव, धीरे-धीरे, ज़िंदगी बदल देते हैं।",
@@ -237,7 +235,7 @@ const HI: typeof EN = {
     privacy: "सिर्फ़ फ़ोटो पढ़ने के लिए भेजी जाती है। आपकी रिपोर्ट इसी फ़ोन में रहती हैं।",
     reading: "आपकी रिपोर्ट पढ़ी जा रही है", time: "20 से 40 सेकंड",
     check: "सेव करने से पहले जाँचें", match: "क्या यह आपके कागज़ से मेल खाता है?", titleField: "शीर्षक", dateField: "तारीख़",
-    save: "सही है, सेव करें", discard: "रद्द करें", pdfTooBig: "PDF 4 MB से बड़ी है। पन्ने की फ़ोटो लेकर कोशिश करें।", failed: "कुछ गड़बड़ हो गई।",
+    save: "सही है, सेव करें", discard: "रद्द करें", pdfTooBig: "PDF 3 MB से बड़ी है। पन्ने की फ़ोटो लेकर कोशिश करें।", failed: "कुछ गड़बड़ हो गई।",
   },
   remind: {
     slot: (slot: string) => `${slot} की दवाइयाँ`, due: "आज जाँच का दिन है",

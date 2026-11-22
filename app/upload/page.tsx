@@ -4,11 +4,10 @@ import { useRef, useState, useSyncExternalStore } from "react";
 import RecordView from "@/components/RecordView";
 import type { MedRecord } from "@/lib/medical";
 import { useT } from "@/lib/i18n";
-import { native } from "@/lib/native";
+import { native, noop } from "@/lib/native";
 import { addRecord, translateRecord } from "@/lib/store";
 
 type Extracted = Omit<MedRecord, "id">;
-const noop = () => () => {};
 const SAMPLES = [
   { i: 0, url: "/demo/07-blood-oct26.png" },
   { i: 1, url: "/demo/08-rx-handwritten.jpg" },
@@ -40,7 +39,7 @@ export default function Upload() {
     setError(""); setState("reading");
     try {
       const isPdf = file.type === "application/pdf";
-      if (isPdf && file.size > 4_000_000) throw new Error(t.upload.pdfTooBig);
+      if (isPdf && file.size > 3_300_000) throw new Error(t.upload.pdfTooBig);
       const dataUrl = isPdf ? await toDataUrl(file) : await toJpeg(file, 1800, 0.85);
       const small = isPdf ? undefined : await toJpeg(file, 360, 0.7);
       setThumb(small); setPreview(isPdf ? undefined : dataUrl);
@@ -48,7 +47,7 @@ export default function Upload() {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ mimeType: isPdf ? "application/pdf" : "image/jpeg", data: dataUrl.split(",")[1] }),
       });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({})); // Vercel limit/timeout pages are plain text
       if (!res.ok) throw new Error(json.error ?? t.upload.failed);
       setRec(json); setState("preview");
     } catch (e) {

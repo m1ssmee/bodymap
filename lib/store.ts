@@ -10,8 +10,7 @@ type State = {
 };
 
 const KEY = "bodymap.v4"; // v4: demo follow-ups + appointments
-const EMPTY: MedRecord[] = [];
-const NONE: never[] = [];
+const NONE: never[] = []; // one stable empty list, so hooks don't re-render on every read
 export const DEFAULT_STATE: State = { activeId: DEMO_PATIENTS[0].id, patients: DEMO_PATIENTS, records: DEMO_RECORDS, appointments: DEMO_APPOINTMENTS };
 const listeners = new Set<() => void>();
 let cacheRaw: string | null = null;
@@ -46,7 +45,7 @@ const subscribe = (l: () => void) => {
 };
 
 export const useAppState = () => useSyncExternalStore(subscribe, read, () => DEFAULT_STATE);
-export function useRecords() { const s = useAppState(); return s.records[s.activeId] ?? EMPTY; }
+export function useRecords() { const s = useAppState(); return s.records[s.activeId] ?? NONE; }
 export function usePatient() { const s = useAppState(); return s.patients.find((p) => p.id === s.activeId) ?? s.patients[0]; }
 
 const withActive = (s: State, fn: (rs: MedRecord[]) => MedRecord[]) => ({ ...s, records: { ...s.records, [s.activeId]: fn(s.records[s.activeId] ?? []) } });
@@ -68,7 +67,6 @@ export function addPatient(p: Omit<Patient, "id">) {
   const id = crypto.randomUUID();
   update((s) => ({ ...s, patients: [...s.patients, { ...p, id }], activeId: id, records: { ...s.records, [id]: [] } }));
 }
-export const resetDemo = () => write(DEFAULT_STATE);
 
 // The active patient's records with text in the chosen language.
 export function useLocalRecords() {

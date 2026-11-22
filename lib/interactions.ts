@@ -15,14 +15,14 @@ const CLASSES = {
   raas: /sartan|pril\b|telma|losar/, // ARBs and ACE inhibitors (BP)
   statin: /statin|atorva|rosuva/,
   thyroid: /levothyrox|thyroxine|thyronorm|eltroxin/,
-  iron: /ferrous|ferric|iron|orofer|livogen/,
+  iron: /ferrous|ferric|\biron\b|orofer|livogen/, // whole word: "spironolactone" contains "iron"
   calcium: /calcium|shelcal/,
   painkiller: /ibuprofen|diclofenac|aceclofenac|naproxen|etoricoxib|combiflam|voveran|brufen|zerodol/,
   antiplatelet: /aspirin|ecosprin|clopidogrel|clopilet/,
   aspirin: /aspirin|ecosprin/,
   clopidogrel: /clopidogrel|clopilet/,
   warfarin: /warfarin|acenocoumarol|acitrom/,
-  ppi: /prazole/,
+  ppi: /(?:ome|panto|rabe|lanso)prazole/, // not "aripiprazole"
   omeprazole: /\bomeprazole|esomeprazole/,
   spironolactone: /spironolactone|aldactone/,
   vitamins: /cholecalciferol|vitamin d|uprise|cobalamin|b12|methylcobal|folic|multivitamin/, // known, no common cautions

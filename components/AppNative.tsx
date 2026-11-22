@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { localToday } from "@/lib/medical";
-import { listen, native } from "@/lib/native";
+import { listen, native, noop } from "@/lib/native";
 import { planReminders, setRemindersOn, syncReminders, useRemindersOn } from "@/lib/reminders";
 import { setActivePatient, useAppState } from "@/lib/store";
 
@@ -34,7 +34,6 @@ export default function AppNative() {
   return null;
 }
 
-const noop = () => () => {};
 
 // The reminder switch on the Medicines page, shown only in the app.
 export function RemindCard() {

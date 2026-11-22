@@ -11,6 +11,23 @@ npm install
 npm run dev
 ```
 
+## NLP: Ask about your records
+`/ask` answers questions in the patient's own words, typed or spoken, in English or Hindi, using only their records (retrieval-augmented generation, RAG).
+
+1. **Passages** (`lib/retrieve.ts`): each record is split into one short passage per fact: a finding, a lab value, a medicine, a piece of advice, a lab's trend over time, the current medicine list, upcoming check-ups.
+2. **Preprocessing**: Unicode normalisation, lowercasing, tokenising letters and digits (Devanagari vowel signs included), dropping the nukta dot (ज़ = ज), removing English and Hindi stop words, and light Porter-style stemming of English words (kidneys → kidney).
+3. **Query expansion**: a small English/Hindi medical synonym map turns everyday words into the words records use (शुगर / sugar → HbA1c, glucose, metformin). Expanded terms weigh 0.6, typed words 1.
+4. **Ranking**: BM25 (k1 = 1.5, b = 0.75) over the passages, in the browser. With no word in common, the patient summary, current medicines and latest records are used instead.
+5. **Answer** (`app/api/ask/route.ts`): the top 8 passages go to Gemini, which may answer only from them and returns the ids it used. These show as source links under the answer.
+
+Voice input uses the browser's speech recogniser (`en-IN` / `hi-IN`; Chrome, Edge, Safari). Each answer has a "How this answer was found" panel listing the searched words (expanded ones marked) and every passage's BM25 score.
+
+## Checks
+```bash
+npm run check   # asserts for the medicine-interaction rules, lab grading, Upcoming, and the NLP pipeline
+npm run lint
+```
+
 ## Deploying
 Vercel is connected to this GitHub repo. Every push to `main` redeploys https://bodymap-qu9s.vercel.app automatically. Pushes to other branches get their own preview link.
 
