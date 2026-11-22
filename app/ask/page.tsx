@@ -62,9 +62,13 @@ export default function Ask() {
     const R = getRecogniser();
     if (!R) return;
     const r = new R();
-    r.lang = t.voice; r.interimResults = false;
-    r.onresult = (e) => { const text = e.results[0]?.[0]?.transcript ?? ""; setQ(text); if (text) ask(text); };
-    r.onend = r.onerror = () => setListening(false);
+    r.lang = t.voice; r.interimResults = true;
+    // Results arrive piece by piece while you talk (some browsers do this even with interimResults off):
+    // show them in the box, and ask only once, when the recogniser stops after a pause or a second tap.
+    let text = "";
+    r.onresult = (e) => { text = Array.from(e.results, (x) => x[0]?.transcript ?? "").join(""); setQ(text); };
+    r.onerror = () => { text = ""; }; // no speech, mic blocked, network: don't send a fragment
+    r.onend = () => { setListening(false); if (text.trim()) ask(text); };
     rec.current = r;
     setListening(true);
     r.start();
