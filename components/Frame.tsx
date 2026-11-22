@@ -14,9 +14,11 @@ const LINKS = [
   { href: "/records", key: "records" },
   { href: "/medicines", key: "medicines" },
   { href: "/trends", key: "trends" },
+  { href: "/ask", key: "ask" },
   { href: "/upload", key: "upload" },
 ] as const;
-const TABS = LINKS.filter((l) => l.key !== "upload"); // phone tab bar: Overview and Records both have an upload button
+// phone tab bar: Overview and Records both have an upload button; Ask opens from a card on Overview (a 6th tab won't fit at 360px)
+const TABS = LINKS.filter((l): l is Exclude<(typeof LINKS)[number], { key: "upload" | "ask" }> => l.key !== "upload" && l.key !== "ask");
 // Tab icons, shown only in the app (24px line icons, drawn here: no icon library)
 const ICON: Record<(typeof TABS)[number]["key"], React.ReactNode> = {
   overview: <path d="M3.5 11 12 4l8.5 7M6 9v11h12V9M10 20v-5h4v5" />,

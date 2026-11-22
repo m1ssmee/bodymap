@@ -63,6 +63,15 @@ export default function Overview() {
         </dl>
       </section>
 
+      <Link href="/ask" className="panel group flex items-center gap-4 px-5 py-5 transition hover:bg-white">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-sage"><path d="M4 5h16v11H9l-5 4z" /><path d="M8.5 9.5h7M8.5 12.5h4" /></svg>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium">{t.ask.card}</div>
+          <div className="text-[0.9rem] text-muted">{t.ask.cardHint}</div>
+        </div>
+        <Arrow />
+      </Link>
+
       <Upcoming />
 
       <section>
