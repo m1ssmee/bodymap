@@ -59,4 +59,30 @@ const many = buildPassages([...DEMO_RECORDS[p.id], ...DEMO_RECORDS[p.id], ...DEM
 const general = retrieve("how am I doing?", many).hits.map((h) => h.passage.id);
 assert.deepEqual(general.slice(0, 2).sort(), ["current-medicines", "patient"]);
 
+// ---- Ask: semantic + hybrid retrieval (hand-made unit vectors, no network) ----
+const { cosine, rrf, MIN_COS } = await import("../lib/retrieve.ts");
+const vec = (...xs) => { const v = new Float32Array(xs); const n = Math.hypot(...v); return v.map((x) => x / n); };
+assert.ok(Math.abs(cosine(vec(1, 0), vec(1, 0)) - 1) < 1e-6 && Math.abs(cosine(vec(1, 0), vec(0, 1))) < 1e-6);
+// RRF: first in both lists beats first in one; ranks, not raw scores, decide
+const P = (id) => ({ id, text: id, date: "", href: "", label: "" });
+const fused = rrf([[P("a"), P("b")], [P("a"), P("c")]]);
+assert.ok(fused.get("a") > fused.get("b") && fused.get("b") === fused.get("c"));
+
+const docs = [P("Doctor's advice: Avoid sweets and white rice."), P("Test result: Triglycerides = 160 mg/dL, eat less fried food."), P("Medicine: Telma 40 for blood pressure.")];
+const vectors = new Map([[docs[0].id, vec(1, 0.1, 0)], [docs[1].id, vec(0.3, 1, 0)], [docs[2].id, vec(0, 0, 1)]]);
+const dense = (q) => ({ query: q, vector: (p) => vectors.get(p.id) });
+// "Can I have mithai?" shares no word with the advice, but its vector is close to it: meaning search finds it
+const sweets = retrieve("Can I have mithai?", docs, 8, dense(vec(1, 0.15, 0)));
+assert.equal(sweets.mode, "hybrid");
+assert.equal(sweets.rankings.bm25.length, 0);
+assert.match(sweets.hits[0].passage.text, /Avoid sweets/);
+// an unrelated question (every cosine under MIN_COS) and no shared word: nothing relevant, so the general fallback
+assert.ok(MIN_COS > 0.4 && MIN_COS < 0.7);
+const offTopic = retrieve("capital of France", docs, 8, dense(vec(-1, -1, -1)));
+assert.equal(offTopic.rankings.semantic.length, 0);
+// without embeddings (the API failed) Ask still works, by words only
+const wordsOnly = retrieve("blood pressure medicine", docs, 8);
+assert.equal(wordsOnly.mode, "bm25");
+assert.match(wordsOnly.hits[0].passage.text, /Telma/);
+
 console.log("All checks passed.");

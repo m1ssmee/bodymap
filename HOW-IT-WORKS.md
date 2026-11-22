@@ -52,7 +52,8 @@ There is no login and no database. Everything is saved in your own browser.
 | Styling | **Tailwind CSS 4** | Styles written right next to the HTML |
 | 3D body | **three.js** with React Three Fiber | Draws the body as glowing points and lines |
 | Reading documents | **Google Gemini** (Flash models) | Reads photos and PDFs, writes plain explanations |
-| Search for Ask | **Our own code** (`lib/retrieve.ts`) | Tokenising, stemming, query expansion and BM25, no library |
+| Search for Ask | **Our own code** (`lib/retrieve.ts`) | Tokenising, stemming, query expansion, BM25, cosine similarity and rank fusion, no library |
+| Meaning of text | **Gemini embeddings** (`gemini-embedding-001`) | Turns each passage and question into numbers, so similar meanings can be found |
 | Hosting | **Vercel** | Every push to `main` goes live automatically |
 | Android app | **Capacitor 8** | Wraps the live website and adds phone features |
 
@@ -74,6 +75,7 @@ app/                 the pages (one folder = one URL) and the server routes
   api/translate/     server: translate a record into Hindi
   api/interactions/  server: ask Gemini about medicines our own list doesn't know
   api/ask/           server: write the answer for Ask from the passages it was given
+  api/embed/         server: turn passages and questions into embeddings (vectors) for Ask
 
 components/          building blocks used by the pages
   Body.tsx           the 3D body drawing
@@ -87,9 +89,10 @@ components/          building blocks used by the pages
 
 lib/                 the logic, with no screens
   retrieve.ts        ★ the NLP pipeline for Ask
+  embed.ts           fetches and remembers embeddings for Ask's search by meaning
   medical.ts         data types and medical rules (current medicines, trends, check-up dates)
   interactions.ts    reviewed list of medicine interactions
-  gemini.ts          one shared function that calls Gemini, with retries
+  gemini.ts          shared functions that call Gemini (answers and embeddings), with retries
   store.ts           saving and loading everything in the browser
   i18n.ts            every sentence on screen, in English and Hindi
   demo.ts            two fictional demo patients with their records
@@ -109,7 +112,7 @@ demo-docs/           printable fake reports for the live demo
 
 **How it works:** this is **RAG** (retrieval-augmented generation). First our own NLP code finds the few facts in your records that matter for the question (**retrieval**). Then Gemini writes the answer **using only those facts** (**generation**). The AI can't invent things about you, because it only sees what retrieval handed it.
 
-All of the retrieval runs in the browser, in [`lib/retrieve.ts`](lib/retrieve.ts).
+Retrieval searches two ways and combines them (**hybrid search**): **by words** (BM25, steps 2–4) and **by meaning** (embeddings, step 5). The ranking runs in the browser, in [`lib/retrieve.ts`](lib/retrieve.ts). Only turning text into embeddings needs the server.
 
 ### Step 1: Turn records into passages
 Each record is cut into small passages, **one fact each**:
@@ -150,9 +153,37 @@ Words you typed count fully (weight **1**). Added words count a bit less (weight
 - **how often it appears** in this passage, with diminishing returns (saying it 5 times isn't 5× better),
 - **a length correction**, so long passages don't win just by having more words.
 
-The settings are the textbook ones: `k1 = 1.5`, `b = 0.75`. The top **8** passages are kept. If no word matches at all (*"how am I doing?"*), it uses the patient summary, the current medicines and the latest records instead.
+The settings are the textbook ones: `k1 = 1.5`, `b = 0.75`.
 
-### Step 5: Gemini writes the answer
+**Its weakness:** BM25 only sees words. *"Is anything wrong in my scans?"* shares no word with the ultrasound or MRI findings, so BM25 finds nothing, even with the synonym map.
+
+### Step 5: Search by meaning (embeddings)
+An **embedding model** turns a piece of text into a list of **768 numbers** (a vector). Texts with similar meaning get vectors pointing in a similar direction, even when they share no words, and even across languages. Similarity is measured with **cosine similarity**, the angle between two vectors: **1** means the same meaning, **0** means unrelated.
+
+- The passages are sent to [`app/api/embed`](app/api/embed/route.ts) once when the Ask page opens. [`lib/embed.ts`](lib/embed.ts) remembers each passage's vector, so only new or changed passages are sent again.
+- Each question is embedded when it's asked (about half a second).
+- The model is told which is which (`RETRIEVAL_DOCUMENT` for passages, `RETRIEVAL_QUERY` for questions), because a question and its answer are worded differently.
+- Vectors are scaled to length 1, so cosine similarity is just multiplying the numbers pairwise and adding them up.
+
+| Question | By words (BM25) | By meaning (cosine) |
+|---|---|---|
+| "Can I eat sweets?" | triglycerides result ❌ | doctor's advice "Avoid sweets…" ✅ 0.69 |
+| "Is anything wrong in my scans?" | nothing | fatty liver, knee, kidney findings ✅ 0.68 |
+| "मुझे थकान क्यों रहती है?" (why am I always tired?) | nothing | haemoglobin results ✅ 0.64 |
+| "What's the capital of France?" | nothing | best is only 0.47: unrelated |
+
+**The cut-off:** a passage below a cosine of **0.55** (`MIN_COS`) counts as unrelated. On the demo records, off-topic questions peak around 0.5 and real ones reach 0.63–0.75.
+
+### Step 6: Combine both lists (reciprocal rank fusion)
+BM25 scores (0 to about 10) and cosines (0 to 1) aren't on the same scale, so they can't simply be added. **Reciprocal rank fusion (RRF)** combines them by **position** instead:
+
+> score = 1 / (60 + position in the words list) + 1 / (60 + position in the meaning list)
+
+A passage near the top of either list rises; near the top of both, it wins. The top **8** go to Gemini. If nothing is relevant either way (*"how am I doing?"*), it uses the patient summary, the current medicines and the latest records instead. If the embedding service is down, Ask still works with BM25 alone.
+
+**Why keep BM25 at all?** Exact names matter in medicine: "Atorva", "HbA1c", "SGPT". Embeddings can blur them; BM25 never does. Each method covers the other's weakness.
+
+### Step 7: Gemini writes the answer
 [`app/api/ask/route.ts`](app/api/ask/route.ts) sends the question and the 8 passages to Gemini with strict rules:
 - answer **only** from these passages; if they don't answer it, say so kindly,
 - never tell the patient to start, stop or change a medicine; never diagnose,
@@ -178,7 +209,7 @@ A Hindi question finds English records, because expansion added the English medi
 The microphone button uses the browser's built-in **speech recogniser** (Indian English `en-IN` or Hindi `hi-IN`, matching the screen language). The spoken words fill the box and the question is asked automatically. This works in Chrome, Edge and Safari. The Android app's built-in browser doesn't support it, so the button is hidden there.
 
 ### "How this answer was found"
-Every answer has a fold-out panel showing the searched words (added words marked with the word they came from) and every passage with its BM25 score. It makes the pipeline visible and easy to demo.
+Every answer has a fold-out panel showing the searched words (added words marked with the word they came from), and three buttons to switch between the rankings for the same question: **By words (BM25)**, **By meaning** (cosine) and **Combined** (RRF, what Gemini was given). Each passage shows all three scores. It makes the pipeline visible and easy to demo: ask *"Can I eat sweets?"* and compare the first two lists.
 
 ---
 
@@ -251,7 +282,8 @@ npm run build
 - medicines go into the right interaction groups (spironolactone isn't "iron"; aripiprazole isn't an acidity tablet),
 - lab grading (a low Vitamin D doesn't turn a normal B12 red),
 - check-ups marked "Done" stay done,
-- the NLP pipeline: stop words, Hindi spelling variants, stemming, Hindi → English expansion, BM25 picking the right passage, and the fallback for general questions.
+- the NLP pipeline: stop words, Hindi spelling variants, stemming, Hindi → English expansion, BM25 picking the right passage, and the fallback for general questions,
+- search by meaning, with small hand-made vectors so no internet is needed: cosine similarity, rank fusion, meaning search finding a passage that shares no words with the question, the unrelated-question cut-off, and Ask still working by words alone when embeddings are unavailable.
 
 ---
 
@@ -270,6 +302,9 @@ We tested the first three on demo patient Ramesh (53 passages) to show the real 
 | **Synonym map** (`SYNONYMS`) | 17 groups | **Add a group** (say `["eye आँख vision", "eyes"]`) and questions using those words start finding eye records. **Remove one** and questions with only those everyday words find nothing. This is the easiest way to make Ask smarter. |
 | **`K1`** (BM25 word-repeat setting) | 1.5 | **Lower (towards 0):** a word counts the same whether it appears once or five times. **Higher (2–3):** passages that repeat a word win more. 1.2–2.0 is the usual range. |
 | **`B`** (BM25 length correction) | 0.75 | **0:** long passages are not penalised, so they win simply by having more words. **1:** full penalty, so short passages win more easily. 0.75 is the textbook value. |
+| **`MIN_COS`** (meaning cut-off) | 0.55 | **Lower (0.4):** off-topic questions start pulling in random passages, because everything is a little similar to everything. **Higher (0.65):** real but loosely worded questions ("anything wrong in my scans?") lose matches and fall back to the general summary. Measured on the demo records: off-topic peaks about 0.5, real questions reach 0.63–0.75. |
+| **`RRF_K`** (rank fusion constant) | 60 | **Lower (around 5):** the very top of each list dominates, so the fused list follows whichever method ranked a passage first. **Higher (100+):** positions matter less, so passages that appear in both lists win. 60 is the value from the original paper. |
+| **`EMBED_DIM`** (in `lib/gemini.ts`) | 768 | The model gives up to 3072 numbers and is trained so the first ones carry most of the meaning. **More:** slightly finer matching, but 4× the data to download per passage. **Fewer (256):** smaller and faster, slightly blurrier. Changing it means every cached vector is re-fetched. |
 | **`k`** (passages sent to Gemini, in `retrieve`) | 8 | **Lower (3–4):** cheaper and more focused, but answers can miss facts ("what is each medicine for?" may skip some medicines). **Higher:** more complete, but slower and costlier. Above **12**, the server rejects the request (see below). |
 | **Stemming rules** (`stem`) | 5 suffix rules | **Remove:** "kidneys" no longer matches "kidney", so plural or "-ing" questions miss records. **Add more rules:** more matches, but also more wrong merges (words with different meanings cut to the same root). |
 
@@ -345,6 +380,7 @@ We tested the first three on demo patient Ramesh (53 passages) to show the real 
 | `app/api/translate/route.ts` | Translates a record's text into Hindi, keeping names, numbers and units |
 | `app/api/interactions/route.ts` | Asks Gemini about interactions for medicines our reviewed list doesn't know |
 | `app/api/ask/route.ts` | Writes the Ask answer from the passages it was given, with citations |
+| `app/api/embed/route.ts` | Turns passages and questions into embeddings (768 numbers each) for Ask's search by meaning |
 
 ### Components (`components/`): reusable screen pieces
 | File | What it does |
@@ -365,10 +401,11 @@ We tested the first three on demo patient Ramesh (53 passages) to show the real 
 ### Logic (`lib/`): no screens, just rules and data
 | File | What it does |
 |---|---|
-| `retrieve.ts` | **NLP pipeline**: passages, tokenising, stop words, stemming, query expansion, BM25 (section 5) |
+| `retrieve.ts` | **NLP pipeline**: passages, tokenising, stop words, stemming, query expansion, BM25, cosine similarity, rank fusion (section 5) |
+| `embed.ts` | Fetches embeddings from `/api/embed` and remembers each passage's vector for the visit |
 | `medical.ts` | Data types, current medicines, lab series, organ summaries, levels and trends, lab grading, upcoming check-ups |
 | `interactions.ts` | Medicine groups (by name patterns) and the reviewed interaction rules, in English and Hindi; saves AI checks |
-| `gemini.ts` | The one function that calls Gemini, with key and model rotation and time limits |
+| `gemini.ts` | Calls Gemini: `askGemini` for answers (key and model rotation, time limits) and `embedTexts` for embeddings (key rotation, one fixed model) |
 | `store.ts` | Saves and loads patients, records, appointments and "done" items in the browser |
 | `i18n.ts` | Every on-screen sentence in English and Hindi, plus date formatting and the language switch |
 | `demo.ts` | Two fictional patients (Ramesh, Lakshmi) with records, so the app works on first visit |
@@ -425,6 +462,10 @@ We tested the first three on demo patient Ramesh (53 passages) to show the real 
 | **Stemming** | Cutting words to a common root so *kidneys* matches *kidney* |
 | **Query expansion** | Adding related words to a search (*sugar* → *HbA1c, glucose*) |
 | **BM25** | A standard formula for ranking text by how well it matches a search |
+| **Embedding** | A list of numbers (here 768) standing for a text's meaning; similar meanings get similar numbers |
+| **Cosine similarity** | How closely two embeddings point the same way: 1 = same meaning, 0 = unrelated |
+| **Hybrid search** | Searching by words and by meaning at once, then combining the two lists |
+| **RRF** | Reciprocal rank fusion: combining ranked lists by each item's position, not its score |
 | **RAG** | Retrieval-augmented generation: find relevant facts first, then let an AI answer only from them |
 | **Passage** | One small piece of a record, about one fact |
 | **LLM** | Large language model, such as Gemini |

@@ -19,10 +19,12 @@ npm run dev
 1. **Passages** (`lib/retrieve.ts`): each record is split into one short passage per fact: a finding, a lab value, a medicine, a piece of advice, a lab's trend over time, the current medicine list, upcoming check-ups.
 2. **Preprocessing**: Unicode normalisation, lowercasing, tokenising letters and digits (Devanagari vowel signs included), dropping the nukta dot (ज़ = ज), removing English and Hindi stop words, and light Porter-style stemming of English words (kidneys → kidney).
 3. **Query expansion**: a small English/Hindi medical synonym map turns everyday words into the words records use (शुगर / sugar → HbA1c, glucose, metformin). Expanded terms weigh 0.6, typed words 1.
-4. **Ranking**: BM25 (k1 = 1.5, b = 0.75) over the passages, in the browser. With no word in common, the patient summary, current medicines and latest records are used instead.
-5. **Answer** (`app/api/ask/route.ts`): the top 8 passages go to Gemini, which may answer only from them and returns the ids it used. These show as source links under the answer.
+4. **Search by words**: BM25 (k1 = 1.5, b = 0.75) over the passages, in the browser.
+5. **Search by meaning**: each passage and the question become 768-number sentence embeddings (`gemini-embedding-001` via `app/api/embed`, cached per passage in `lib/embed.ts`), ranked by cosine similarity. This finds passages with no word in common: "Can I eat sweets?" → the doctor's "Avoid sweets…" advice; "Is anything wrong in my scans?" → the ultrasound, MRI and X-ray findings; मुझे थकान क्यों रहती है? → the haemoglobin results. Below a cosine of 0.55 a passage counts as unrelated (an off-topic question peaks around 0.5, real ones reach 0.63–0.75 on the demo records).
+6. **Hybrid**: the two rankings are fused with reciprocal rank fusion (score = Σ 1/(60 + rank)). With nothing relevant either way, the patient summary, current medicines and latest records are used instead. If embeddings are unavailable, Ask falls back to BM25 alone.
+7. **Answer** (`app/api/ask/route.ts`): the top 8 passages go to Gemini, which may answer only from them and returns the ids it used. These show as source links under the answer.
 
-Voice input uses the browser's speech recogniser (`en-IN` / `hi-IN`; Chrome, Edge, Safari). Each answer has a "How this answer was found" panel listing the searched words (expanded ones marked) and every passage's BM25 score.
+Voice input uses the browser's speech recogniser (`en-IN` / `hi-IN`; Chrome, Edge, Safari). Each answer has a "How this answer was found" panel listing the searched words (expanded ones marked) and switching between the three rankings (by words, by meaning, combined) with each passage's BM25, cosine and RRF scores.
 
 ## Checks
 ```bash

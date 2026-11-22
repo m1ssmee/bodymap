@@ -1,11 +1,15 @@
-// Retrieval for "Ask": the patient's records are split into short passages, and a question is matched to them
-// with BM25 (Robertson & Zaragoza, 2009) after tokenising, stop-word removal, light stemming and query expansion
-// with a small English/Hindi medical synonym map. The top passages go to the LLM, which answers only from them (RAG).
+// Retrieval for "Ask": the patient's records are split into short passages, and a question is matched to them two ways:
+// - by words: BM25 (Robertson & Zaragoza, 2009) after tokenising, stop-word removal, light stemming and query expansion
+//   with a small English/Hindi medical synonym map;
+// - by meaning: cosine similarity of sentence embeddings;
+// and the two rankings are fused with reciprocal rank fusion (hybrid search). The top passages go to the LLM,
+// which answers only from them (RAG).
 import type { Strings } from "./i18n";
 import { currentMedicines, labSeries, level, trend, type MedRecord, type Patient, type UpcomingItem } from "./medical";
 
 export type Passage = { id: string; text: string; date: string; href: string; label: string };
-export type Hit = { passage: Passage; score: number; matched: string[] };
+// score = BM25; cos = cosine similarity to the question (with embeddings); rrf = fused score (hybrid)
+export type Hit = { passage: Passage; score: number; matched: string[]; cos?: number; rrf?: number };
 export type QueryTerm = { term: string; weight: number; from?: string }; // from = the word it was expanded from
 
 // ---- 1. preprocessing ----
@@ -144,16 +148,50 @@ export function bm25(passages: Passage[], terms: QueryTerm[]): Hit[] {
   }).sort((a, b) => b.score - a.score);
 }
 
-// Top-k passages for a question. With no word in common, fall back to the overview passages so general
-// questions ("how am I doing?") still get context.
-export function retrieve(question: string, passages: Passage[], k = 8) {
+// ---- 5. semantic search: sentence embeddings + cosine similarity ----
+// Each passage and the question are turned into a 768-number vector by an embedding model (app/api/embed), so that
+// texts with similar meaning point the same way even with no word in common ("Can I eat sweets?" ~ "Avoid sweets,
+// sugary tea…"; "मुझे थकान क्यों है?" ~ the haemoglobin result). Vectors are unit length, so cosine = dot product.
+export const cosine = (a: Float32Array, b: Float32Array) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
+
+// Below this the best passage is unrelated: on the demo records an off-topic question ("capital of France?")
+// peaks at 0.52, while real questions reach 0.63–0.75.
+export const MIN_COS = 0.55;
+
+// ---- 6. hybrid: reciprocal rank fusion (Cormack et al., 2009) ----
+// BM25 scores (0–10ish) and cosines (0–1) aren't on the same scale, so fuse by rank instead:
+// score = Σ 1 / (RRF_K + rank) over both lists. A passage near the top of either list rises; near the top of both wins.
+export const RRF_K = 60;
+export function rrf(lists: Passage[][]) {
+  const s = new Map<string, number>();
+  for (const list of lists) list.forEach((p, r) => s.set(p.id, (s.get(p.id) ?? 0) + 1 / (RRF_K + r + 1)));
+  return s;
+}
+
+export type Dense = { query: Float32Array; vector: (p: Passage) => Float32Array | undefined };
+export type Mode = "hybrid" | "bm25" | "semantic";
+
+// Top-k passages for a question, by BM25 alone or, given embeddings, by BM25 + meaning fused with RRF.
+// With nothing relevant either way, fall back to the overview passages so general questions ("how am I doing?")
+// still get context. `rankings` keeps each method's own top k, for the "How this answer was found" panel.
+export function retrieve(question: string, passages: Passage[], k = 8, dense?: Dense) {
   const terms = queryTerms(question);
   const ranked = bm25(passages, terms);
-  let hits = ranked.filter((h) => h.score > 0).slice(0, k);
-  if (!hits.length) {
+  const lexical = ranked.filter((h) => h.score > 0);
+  if (dense) for (const h of ranked) { const v = dense.vector(h.passage); if (v) h.cos = cosine(dense.query, v); }
+  const semantic = dense ? ranked.filter((h) => h.cos !== undefined && h.cos >= MIN_COS).sort((a, b) => b.cos! - a.cos!) : [];
+
+  let hits: Hit[];
+  if (!lexical.length && !semantic.length) {
     const general = new Set(["patient", "current-medicines"]);
     hits = ranked.filter((h) => general.has(h.passage.id) || h.passage.id.endsWith(":s"))
       .sort((a, b) => +general.has(b.passage.id) - +general.has(a.passage.id) || b.passage.date.localeCompare(a.passage.date)).slice(0, k); // patient + medicines first: they have no date
+  } else if (!dense) hits = lexical.slice(0, k);
+  else {
+    const fused = rrf([lexical.map((h) => h.passage), semantic.map((h) => h.passage)]);
+    hits = ranked.filter((h) => fused.has(h.passage.id)).map((h) => Object.assign(h, { rrf: fused.get(h.passage.id) }))
+      .sort((a, b) => b.rrf! - a.rrf!).slice(0, k);
   }
-  return { terms, hits };
+  const mode: Mode = dense ? "hybrid" : "bm25";
+  return { terms, hits, mode, rankings: { bm25: lexical.slice(0, k), semantic: semantic.slice(0, k), hybrid: hits } };
 }

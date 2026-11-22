@@ -1,14 +1,19 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Speak from "@/components/Speak";
+import { denseFor, embedPassages } from "@/lib/embed";
 import { useLang, useT } from "@/lib/i18n";
 import { localToday, upcoming } from "@/lib/medical";
-import { buildPassages, retrieve, type Hit, type Passage, type QueryTerm } from "@/lib/retrieve";
+import { buildPassages, retrieve, type Dense, type Hit, type Mode, type Passage, type QueryTerm } from "@/lib/retrieve";
 import { useAppointments, useConditions, useDone, useLocalRecords, usePatient } from "@/lib/store";
 import { noop } from "@/lib/native";
 
-type Turn = { id: string; q: string; terms: QueryTerm[]; hits: Hit[]; answer?: string; cites?: Passage[]; error?: string };
+type Rankings = Record<Mode, Hit[]>;
+type Turn = {
+  id: string; q: string; terms: QueryTerm[]; rankings?: Rankings; mode?: Mode; // mode = the ranking sent to the AI
+  answer?: string; cites?: Passage[]; error?: string;
+};
 
 // The browser's speech recogniser (Chrome, Edge, Safari); absent in most Android WebViews, where the mic is hidden.
 type Recogniser = { lang: string; interimResults: boolean; start(): void; stop(): void; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
@@ -33,16 +38,20 @@ export default function Ask() {
   const [listening, setListening] = useState(false);
   const canListen = useSyncExternalStore(noop, () => !!getRecogniser(), () => false);
   const rec = useRef<Recogniser | null>(null);
+  // embed the passages as soon as the page opens, so the first question only has to embed itself
+  useEffect(() => { if (passages.length) embedPassages(passages).catch(() => {}); }, [passages]);
 
   async function ask(question: string) {
     question = question.trim();
     if (!question || busy) return;
-    const { terms, hits } = retrieve(question, passages);
     const id = crypto.randomUUID(); // not the list index: the voice callback can run with a stale list
-    setTurns((ts) => [...ts, { id, q: question, terms, hits }]);
+    setTurns((ts) => [...ts, { id, q: question, terms: [] }]);
     setQ(""); setBusy(true);
     const patch = (p: Partial<Turn>) => setTurns((ts) => ts.map((x) => (x.id === id ? { ...x, ...p } : x)));
     try {
+      const dense: Dense | undefined = await denseFor(question, passages).catch(() => undefined); // no embeddings: words only
+      const { terms, hits, mode, rankings } = retrieve(question, passages, 8, dense);
+      patch({ terms, rankings, mode });
       const res = await fetch("/api/ask", {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ question, lang, passages: hits.map(({ passage: { id, text, date } }) => ({ id, text: text.slice(0, 1200), date })) }),
@@ -101,30 +110,7 @@ export default function Ask() {
                     ))}
                   </div>
                 )}
-                <details className="text-[0.85rem]">
-                  <summary className="cursor-pointer font-mono text-[0.75rem] text-muted">{a.how}</summary>
-                  <div className="mt-3 space-y-3">
-                    <div>
-                      <div className="label mb-1.5">{a.searched}</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {turn.terms.map((x) => (
-                          <span key={x.term} title={x.from ? `${a.added} “${x.from}”` : undefined}
-                            className={`rounded px-1.5 py-0.5 font-mono text-[0.75rem] ${x.from ? "border border-dashed border-line text-muted" : "bg-black/[0.06]"}`}>
-                            {x.term}{x.from && <span className="opacity-60"> ← {x.from}</span>}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <ol className="space-y-1.5">
-                      {turn.hits.map((h) => (
-                        <li key={h.passage.id} className="flex gap-3">
-                          <span className="num w-12 shrink-0 font-mono text-[0.75rem] text-muted">{h.score.toFixed(2)}</span>
-                          <span className="min-w-0 text-muted">{h.passage.text}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </details>
+                {turn.rankings && turn.mode && <HowFound terms={turn.terms} rankings={turn.rankings} sent={turn.mode} />}
               </div>
             </section>
           ))}
@@ -152,5 +138,70 @@ export default function Ask() {
         </div>
       )}
     </div>
+  );
+}
+
+// "How this answer was found": the searched words, then each method's own ranking for the same question,
+// so word search (BM25), meaning search (embeddings) and the fused list sent to the AI can be compared.
+const MODES: Mode[] = ["hybrid", "bm25", "semantic"];
+
+function HowFound({ terms, rankings, sent }: { terms: QueryTerm[]; rankings: Rankings; sent: Mode }) {
+  const a = useT().ask;
+  const [view, setView] = useState<Mode>(sent);
+  const semanticOff = sent === "bm25"; // embeddings failed: only word search ran
+  const list = rankings[view];
+  const num = (n: number | undefined, d: number) => (n === undefined ? "–" : n.toFixed(d));
+  return (
+    <details className="text-[0.85rem]">
+      <summary className="cursor-pointer font-mono text-[0.75rem] text-muted">{a.how}</summary>
+      <div className="mt-3 space-y-4">
+        <div>
+          <div className="label mb-1.5">{a.searched}</div>
+          <div className="flex flex-wrap gap-1.5">
+            {terms.map((x) => (
+              <span key={x.term} title={x.from ? `${a.added} “${x.from}”` : undefined}
+                className={`rounded px-1.5 py-0.5 font-mono text-[0.75rem] ${x.from ? "border border-dashed border-line text-muted" : "bg-black/[0.06]"}`}>
+                {x.term}{x.from && <span className="opacity-60"> ← {x.from}</span>}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div role="group" className="flex flex-wrap gap-1.5">
+            {MODES.map((m) => (
+              <button key={m} onClick={() => setView(m)} aria-pressed={view === m} disabled={semanticOff && m !== "bm25"}
+                className={`min-h-9 rounded-full border px-3 text-[0.8rem] transition disabled:opacity-35 ${view === m ? "border-ink bg-ink text-white" : "border-line bg-white/70 hover:bg-white"}`}>
+                {a.modes[m]}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-muted">{semanticOff ? a.semanticOff : a.modeHint[view]}</p>
+        </div>
+        {list.length === 0 ? <p className="text-muted">{a.nothing}</p> : (
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="text-left font-mono text-[0.7rem] text-muted">
+                <th className="w-6 pb-1 font-normal">#</th>
+                <th className="pb-1 font-normal">{a.col.passage}</th>
+                <th className="w-12 pb-1 text-right font-normal">{a.col.bm25}</th>
+                {!semanticOff && <th className="w-12 pb-1 text-right font-normal">{a.col.cos}</th>}
+                {!semanticOff && <th className="w-14 pb-1 text-right font-normal">{a.col.rrf}</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((h, i) => (
+                <tr key={h.passage.id} className="border-t border-line align-top">
+                  <td className="py-1.5 font-mono text-[0.75rem] text-muted">{i + 1}</td>
+                  <td className="py-1.5 pr-2 text-muted">{h.passage.text}</td>
+                  <td className={`num py-1.5 text-right font-mono text-[0.75rem] ${view === "bm25" ? "font-semibold" : "text-muted"}`}>{h.score ? h.score.toFixed(2) : "–"}</td>
+                  {!semanticOff && <td className={`num py-1.5 text-right font-mono text-[0.75rem] ${view === "semantic" ? "font-semibold" : "text-muted"}`}>{num(h.cos, 2)}</td>}
+                  {!semanticOff && <td className={`num py-1.5 text-right font-mono text-[0.75rem] ${view === "hybrid" ? "font-semibold" : "text-muted"}`}>{num(h.rrf, 4)}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </details>
   );
 }
