@@ -4,6 +4,8 @@
 
 Upload a prescription, blood report, X-ray, MRI, CT or ultrasound. Gemini reads it, every finding is pinned to a 3D body, and everything is explained in plain language for older patients. Records stay in the browser (localStorage). No login, no database.
 
+New to the code? Start with **[HOW-IT-WORKS.md](HOW-IT-WORKS.md)**: a plain-language tour of every part, including the NLP pipeline.
+
 ## Run locally
 ```bash
 cp .env.example .env.local   # put your Gemini keys in GEMINI_KEYS
